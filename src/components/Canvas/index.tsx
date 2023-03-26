@@ -1,64 +1,65 @@
-import React, {useRef, useEffect, useContext} from 'react'
+import React, {useRef, useState, useEffect, useContext} from 'react'
 
 import {CanvasContext} from '../../contexts/canvas'
-import {useCanvasZoom} from '../../hooks/useCanvasZoom'
-import {CanvasObj} from '../../interfaces'
+import {useCanvasListeners} from '../../hooks/useCanvasListeners'
 import {useSnackbar} from '../../hooks/useSnackbar'
-import {clearMap, drawHex} from '../../core/utils/map.utils'
-import {useCursorPosition} from '../../hooks/useCursorPosition'
+import {CanvasContextState} from '../../contexts/canvas/interfaces'
 import * as UI from './styles'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
   const canvas = useContext(CanvasContext)
-  const {addZoomListener, removeZoomListener} = useCanvasZoom(
-    canvas as CanvasObj
-  )
-  const {addMousemoveListener, removeMousemoveListener} = useCursorPosition(
-    canvas as CanvasObj
+
+  const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
+    canvas as CanvasContextState
   )
 
   const canvasRef = useRef<null | HTMLCanvasElement>(null)
 
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  /** Init canvas state */
   useEffect(() => {
-    if (!canvasRef.current) {
+    if (!canvasRef.current || !canvas) {
       return
     }
 
-    if (!canvas.ref) {
+    if (canvas.ref === null) {
       canvas.ref = canvasRef.current
       canvas.ref.width = canvas.ref.offsetWidth
       canvas.ref.height = canvas.ref.offsetHeight
     }
 
-    if (!canvas.ref.getContext) {
+    if (!canvas.ref?.getContext) {
       enqueueSnackbar('Браузер не поддерживается', {variant: 'error'})
       return
     }
 
     if (!canvas.ctx) {
       canvas.ctx = canvas.ref.getContext('2d')
+      canvas.isUpdateRequired = true
+      setIsInitialized(true)
     }
   }, [])
 
   useEffect(() => {
-    addZoomListener()
-    addMousemoveListener()
+    if (!isInitialized || !canvas) {
+      return
+    }
+
+    addCanvasListeners()
+
+    // clearMap(canvas)
+    // requestAnimationFrame(() => {
+    //   drawHex(canvas.ctx, {
+    //     coords: {x: 200, y: 200}
+    //   })
+    // })
 
     return () => {
-      removeZoomListener()
-      removeMousemoveListener()
+      removeCanvasListeners()
     }
-  }, [])
-
-  useEffect(() => {
-    clearMap(canvas as CanvasObj)
-    requestAnimationFrame(() => {
-      drawHex(canvas.ctx as CanvasRenderingContext2D, {
-        coords: {x: 200, y: 200}
-      })
-    })
-  }, [])
+  }, [isInitialized])
 
   return <UI.Canvas ref={canvasRef} />
 }

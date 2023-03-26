@@ -1,7 +1,7 @@
 import React from 'react'
 import dayjs from 'dayjs'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
-import {CssBaseline} from '@mui/material'
+import {CssBaseline, GlobalStyles} from '@mui/material'
 
 import 'firebase/auth'
 import 'dayjs/locale/ru'
@@ -23,6 +23,13 @@ const App = () => {
   return (
     <BrowserRouter>
       <CssBaseline />
+      <GlobalStyles
+        styles={{
+          body: {
+            overscrollBehavior: 'none' // disable refresh page behavior on mobile
+          }
+        }}
+      />
       <Theme>
         <SnackbarProvider>
           <AuthProvider>

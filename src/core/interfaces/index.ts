@@ -1,10 +1,7 @@
-export interface HexCoordinates {
-  x: number
-  y: number
-}
+import {Position2D} from '../../contexts/canvas/interfaces'
 
 export interface HexObj {
-  coords: HexCoordinates
+  coords: Position2D
   /** Outer Hex radius */
-  radius?: number,
+  radius?: number
 }

@@ -1,11 +1,45 @@
-import {CanvasObj} from '../../interfaces'
 import {HexObj} from '../interfaces'
+import {CanvasContextState} from '../../contexts/canvas/interfaces'
 
-export const clearMap = (c: CanvasObj) => {
-  c.ctx.clearRect(0, 0, c.ref.width, c.ref.height)
+export const clearMap = (canvas: CanvasContextState) => {
+  const {ref, ctx, scale, originOffset} = canvas
+  if (!ref || !ctx) {
+    return
+  }
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.clearRect(0, 0, ref.width, ref.height)
+  canvas.isUpdateRequired = false
+  ctx.setTransform(scale, 0, 0, scale, originOffset.x, originOffset.y)
 }
 
-export const drawHex = (ctx: CanvasRenderingContext2D, options: HexObj) => {
+/** -------------------------------- */
+const rand = (m = 255, M = m + (m = 0)) => (Math.random() * (M - m) + m) | 0
+const objects: any = []
+for (let i = 0; i < 100; i++) {
+  objects.push({
+    x: rand(1000),
+    y: rand(750),
+    w: rand(40),
+    h: rand(40),
+    col: `rgb(${rand()},${rand()},${rand()})`
+  })
+}
+/** =============================== */
+
+export const drawHex = (ctx: CanvasContextState['ctx'], options: HexObj) => {
+  if (!ctx) {
+    return
+  }
+
+  /** -------------------------------- */
+  // for (let i = 0; i < objects.length; i++) {
+  //   const obj = objects[i]
+  //   ctx.fillStyle = obj.col
+  //   ctx?.fillRect(obj.x, obj.y, obj.h, obj.h)
+  // }
+  /** =============================== */
+
   const {coords, radius = 100} = options
   const {x, y} = coords
 
