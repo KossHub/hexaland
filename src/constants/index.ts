@@ -1,5 +1,5 @@
 export const SCALE = {
-  MIN: 0.5,
-  MAX: 1.5,
+  MIN: 0.32,
+  MAX: 2.4,
   INIT: 1
 }

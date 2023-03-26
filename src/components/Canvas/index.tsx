@@ -37,7 +37,6 @@ const Canvas = () => {
 
     if (!canvas.ctx) {
       canvas.ctx = canvas.ref.getContext('2d')
-      canvas.isUpdateRequired = true
       setIsInitialized(true)
     }
   }, [])
@@ -48,13 +47,6 @@ const Canvas = () => {
     }
 
     addCanvasListeners()
-
-    // clearMap(canvas)
-    // requestAnimationFrame(() => {
-    //   drawHex(canvas.ctx, {
-    //     coords: {x: 200, y: 200}
-    //   })
-    // })
 
     return () => {
       removeCanvasListeners()

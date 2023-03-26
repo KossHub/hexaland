@@ -1,8 +1,8 @@
 import React, {useState, useEffect, PropsWithChildren} from 'react'
 import {useMediaQuery} from '@mui/material'
-import {SnackbarProvider as NotistackSnackbarProvider} from 'notistack'
 
 import {NOTIFICATION_POSITION} from './constants'
+import * as UI from './styles'
 
 const SnackbarProvider: React.FC<PropsWithChildren> = (props) => {
   const {children} = props
@@ -20,14 +20,14 @@ const SnackbarProvider: React.FC<PropsWithChildren> = (props) => {
   }, [isSmallScreen])
 
   return (
-    <NotistackSnackbarProvider
+    <UI.Provider
       preventDuplicate
       dense={isSmallScreen}
       maxSnack={isSmallScreen ? 3 : 5}
       anchorOrigin={position}
     >
       {children}
-    </NotistackSnackbarProvider>
+    </UI.Provider>
   )
 }
 
