@@ -1,7 +1,7 @@
-import {useCallback, useRef} from 'react'
+import {useRef} from 'react'
 import {inRange} from 'lodash'
 
-import {SCALE} from '../constants'
+import {OFFSET_LIMIT, SCALE} from '../constants'
 import {drawHex} from '../core/utils/canvasDraw.utils'
 import {CanvasContextState, Position2D} from '../contexts/canvas/interfaces'
 import {
@@ -38,19 +38,63 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
   const drawCanvas = () => {
     if (canvas.ctx && isUpdateRequired.current) {
       clearMap()
-      drawHex(canvas.ctx, {radius: 100, coords: {x: 250, y: 500}})
+
+      drawHex(canvas.ctx, {radius: 50, coords: {x: 500, y: 500}})
     }
 
     requestAnimationFrame(drawCanvas)
   }
 
   const moveOffset = (offsetAmount: Position2D) => {
-    const newOffsetX = canvas.originOffset.x + offsetAmount.x
-    const newOffsetY = canvas.originOffset.y + offsetAmount.y
-
+    // TODO: Allow move if paper is smaller than screen
     isUpdateRequired.current = false
-    canvas.originOffset.x += offsetAmount.x
-    canvas.originOffset.y += offsetAmount.y
+
+    const newOffsetX = canvas.originOffset.x + offsetAmount.x
+    const isMoveLeft = newOffsetX > canvas.originOffset.x
+    const isMoveRight = newOffsetX < canvas.originOffset.x
+    const leftOffsetLimit = 0
+    const rightOffsetLimit = -(
+      OFFSET_LIMIT.X * canvas.scale -
+      (canvas?.ref?.offsetWidth || 0)
+    )
+    const isMoveLeftAvailable =
+      isMoveLeft &&
+      newOffsetX <= leftOffsetLimit &&
+      canvas.originOffset.x <= leftOffsetLimit
+    const isMoveRightAvailable =
+      isMoveRight &&
+      newOffsetX >= rightOffsetLimit &&
+      canvas.originOffset.x >= rightOffsetLimit
+
+    if (isMoveLeftAvailable || isMoveRightAvailable) {
+      canvas.originOffset.x = isMoveLeft
+        ? Math.min(0, newOffsetX)
+        : Math.max(newOffsetX, rightOffsetLimit)
+    }
+
+    const newOffsetY = canvas.originOffset.y + offsetAmount.y
+    const isMoveUp = newOffsetY < canvas.originOffset.y
+    const isMoveDown = newOffsetY > canvas.originOffset.y
+    const topOffsetLimit = 0
+    const bottomOffsetLimit = -(
+      OFFSET_LIMIT.Y * canvas.scale -
+      (canvas?.ref?.offsetHeight || 0)
+    )
+    const isMoveDownAvailable =
+      isMoveDown &&
+      newOffsetY <= topOffsetLimit &&
+      canvas.originOffset.y <= topOffsetLimit
+    const isisMoveUpAvailable =
+      isMoveUp &&
+      newOffsetY >= bottomOffsetLimit &&
+      canvas.originOffset.y >= bottomOffsetLimit
+
+    if (isMoveDownAvailable || isisMoveUpAvailable) {
+      canvas.originOffset.y = isMoveDown
+        ? Math.min(0, newOffsetY)
+        : Math.max(newOffsetY, bottomOffsetLimit)
+    }
+
     isUpdateRequired.current = true
   }
 
@@ -62,26 +106,42 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     }
 
     isUpdateRequired.current = false
+
     canvas.scale = newScale
-    canvas.originOffset.x = at.x - (at.x - canvas.originOffset.x) * amount
-    canvas.originOffset.y = at.y - (at.y - canvas.originOffset.y) * amount
+
+    const windowWidth = canvas.ref?.offsetWidth || 0
+    const isLeftOffsetExceed =
+      OFFSET_LIMIT.X * newScale - windowWidth + canvas.originOffset.x < 0
+    const isRightOffsetExceed = canvas.originOffset.x > 0
+    const atX =
+      isLeftOffsetExceed || isRightOffsetExceed ? windowWidth / 2 : at.x
+    isUpdateRequired.current = false
+    canvas.originOffset.x = atX - (atX - canvas.originOffset.x) * amount
+
+    const windowHeight = canvas.ref?.offsetHeight || 0
+    const isTopOffsetExceed =
+      OFFSET_LIMIT.Y * newScale - windowHeight + canvas.originOffset.y < 0
+    const isBottomOffsetExceed = canvas.originOffset.y > 0
+    const atY =
+      isTopOffsetExceed || isBottomOffsetExceed ? windowHeight / 2 : at.y
+    canvas.originOffset.y = atY - (atY - canvas.originOffset.y) * amount
+
     isUpdateRequired.current = true
   }
 
-  const onResize = useCallback(() => {
+  const onResize = () => {
     if (!canvas.ref) {
       return
     }
 
     isUpdateRequired.current = false
-
     const rect = canvas.ref.getBoundingClientRect()
     canvas.ref.width = Math.round(rect.width)
     canvas.ref.height = Math.round(rect.height)
     isUpdateRequired.current = true
-  }, [])
+  }
 
-  const mouseEvent = useCallback((event: MouseEvent) => {
+  const mouseEvent = (event: MouseEvent) => {
     if (event.type === 'mousedown') {
       isMouseButtonPressed.current = true
     }
@@ -101,9 +161,9 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
       x: event.offsetX,
       y: event.offsetY
     }
-  }, [])
+  }
 
-  const onTouchStart = useCallback((event: TouchEvent) => {
+  const onTouchStart = (event: TouchEvent) => {
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
 
@@ -117,9 +177,9 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     }
 
     event.preventDefault()
-  }, [])
+  }
 
-  const onTouchMove = useCallback((event: TouchEvent) => {
+  const onTouchMove = (event: TouchEvent) => {
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
 
@@ -151,15 +211,15 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     }
 
     event.preventDefault()
-  }, [])
+  }
 
-  const mouseWheelEvent = useCallback((event: WheelEvent) => {
+  const mouseWheelEvent = (event: WheelEvent) => {
     const {offsetX, offsetY, deltaY} = event
     const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
     scaleAt({x: offsetX, y: offsetY}, delta)
     event.preventDefault() // TODO: Check if all preventDefault required on this page
-  }, [])
+  }
 
   const addCanvasListeners = () => {
     if (!canvas.ref) {
