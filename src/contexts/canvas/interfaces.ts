@@ -9,3 +9,10 @@ export interface CanvasContextState {
   scale: number
   originOffset: Position2D
 }
+
+export interface MapEdges {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}

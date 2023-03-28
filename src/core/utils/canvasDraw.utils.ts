@@ -1,16 +1,16 @@
 import {HexObj} from '../interfaces'
-import {CanvasContextState} from '../../contexts/canvas/interfaces'
+import {CanvasContextState, MapEdges} from '../../contexts/canvas/interfaces'
 import {OFFSET_LIMIT} from '../../constants'
 
 // ---------------------------
 const rand = (m = 255, M = m + (m = 0)) => (Math.random() * (M - m) + m) | 0
 const objects: any = []
-for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 750; i++) {
   objects.push({
-    x: rand(OFFSET_LIMIT.X),
-    y: rand(OFFSET_LIMIT.Y),
-    w: rand(40),
-    h: rand(40),
+    x: rand(OFFSET_LIMIT.X-50),
+    y: rand(OFFSET_LIMIT.Y-50),
+    w: rand(50),
+    h: rand(50),
     col: `rgb(${rand()},${rand()},${rand()})`
   })
 }
@@ -45,3 +45,11 @@ export const drawHex = (ctx: CanvasContextState['ctx'], options: HexObj) => {
   // ctx.stroke()
   // ctx.restore()
 }
+
+
+const getMapEdges = (): MapEdges => ({
+  top: canvas.originOffset.y,
+  right: canvas.originOffset.x + OFFSET_LIMIT.X * canvas.scale,
+  bottom: canvas.originOffset.y + OFFSET_LIMIT.Y * canvas.scale,
+  left: canvas.originOffset.x
+})

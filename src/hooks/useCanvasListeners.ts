@@ -3,7 +3,11 @@ import {inRange} from 'lodash'
 
 import {OFFSET_LIMIT, SCALE} from '../constants'
 import {drawHex} from '../core/utils/canvasDraw.utils'
-import {CanvasContextState, Position2D} from '../contexts/canvas/interfaces'
+import {
+  CanvasContextState,
+  MapEdges,
+  Position2D
+} from '../contexts/canvas/interfaces'
 import {
   getTouchesDistance,
   getTouchesMidpoint
@@ -45,54 +49,44 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     requestAnimationFrame(drawCanvas)
   }
 
+  const getMapEdges = (): MapEdges => ({
+    top: canvas.originOffset.y,
+    right: canvas.originOffset.x + OFFSET_LIMIT.X * canvas.scale,
+    bottom: canvas.originOffset.y + OFFSET_LIMIT.Y * canvas.scale,
+    left: canvas.originOffset.x
+  })
+
   const moveOffset = (offsetAmount: Position2D) => {
-    // TODO: Allow move if paper is smaller than screen
     isUpdateRequired.current = false
 
-    const newOffsetX = canvas.originOffset.x + offsetAmount.x
-    const isMoveLeft = newOffsetX > canvas.originOffset.x
-    const isMoveRight = newOffsetX < canvas.originOffset.x
-    const leftOffsetLimit = 0
-    const rightOffsetLimit = -(
-      OFFSET_LIMIT.X * canvas.scale -
-      (canvas?.ref?.offsetWidth || 0)
-    )
-    const isMoveLeftAvailable =
-      isMoveLeft &&
-      newOffsetX <= leftOffsetLimit &&
-      canvas.originOffset.x <= leftOffsetLimit
-    const isMoveRightAvailable =
-      isMoveRight &&
-      newOffsetX >= rightOffsetLimit &&
-      canvas.originOffset.x >= rightOffsetLimit
+    const {left, right, top, bottom} = getMapEdges()
 
-    if (isMoveLeftAvailable || isMoveRightAvailable) {
-      canvas.originOffset.x = isMoveLeft
-        ? Math.min(0, newOffsetX)
-        : Math.max(newOffsetX, rightOffsetLimit)
+    const windowWidth = canvas.ref?.width || 0
+    const newOffsetX = left + offsetAmount.x
+    const isLeftOffsetIncreasing = newOffsetX > left
+    const isLeftOffsetDecreasing = newOffsetX < left
+    const isIncreaseLeftOffsetAvailable = left < 0 || right < windowWidth
+    const isDecreaseLeftOffsetAvailable = left > 0 || right > windowWidth
+
+    if (
+      (isLeftOffsetIncreasing && isIncreaseLeftOffsetAvailable) ||
+      (isLeftOffsetDecreasing && isDecreaseLeftOffsetAvailable)
+    ) {
+      canvas.originOffset.x = newOffsetX
     }
 
-    const newOffsetY = canvas.originOffset.y + offsetAmount.y
-    const isMoveUp = newOffsetY < canvas.originOffset.y
-    const isMoveDown = newOffsetY > canvas.originOffset.y
-    const topOffsetLimit = 0
-    const bottomOffsetLimit = -(
-      OFFSET_LIMIT.Y * canvas.scale -
-      (canvas?.ref?.offsetHeight || 0)
-    )
-    const isMoveDownAvailable =
-      isMoveDown &&
-      newOffsetY <= topOffsetLimit &&
-      canvas.originOffset.y <= topOffsetLimit
-    const isisMoveUpAvailable =
-      isMoveUp &&
-      newOffsetY >= bottomOffsetLimit &&
-      canvas.originOffset.y >= bottomOffsetLimit
+    const windowHeight = canvas.ref?.height || 0
+    const newOffsetY = top + offsetAmount.y
+    const isTopOffsetIncreasing = newOffsetY > top
+    const isTopOffsetDecreasing = newOffsetY < top
+    const isIncreaseTopOffsetAvailable = top < 0 || bottom < windowHeight
+    const isDecreaseTopOffsetAvailable = top > 0 || bottom > windowHeight
 
-    if (isMoveDownAvailable || isisMoveUpAvailable) {
-      canvas.originOffset.y = isMoveDown
-        ? Math.min(0, newOffsetY)
-        : Math.max(newOffsetY, bottomOffsetLimit)
+    if (
+      (isTopOffsetIncreasing && isIncreaseTopOffsetAvailable) ||
+      (isTopOffsetDecreasing && isDecreaseTopOffsetAvailable)
+    ) {
+      canvas.originOffset.y = newOffsetY
     }
 
     isUpdateRequired.current = true
@@ -106,26 +100,14 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     }
 
     isUpdateRequired.current = false
-
     canvas.scale = newScale
-
-    const windowWidth = canvas.ref?.offsetWidth || 0
-    const isLeftOffsetExceed =
-      OFFSET_LIMIT.X * newScale - windowWidth + canvas.originOffset.x < 0
-    const isRightOffsetExceed = canvas.originOffset.x > 0
-    const atX =
-      isLeftOffsetExceed || isRightOffsetExceed ? windowWidth / 2 : at.x
-    isUpdateRequired.current = false
-    canvas.originOffset.x = atX - (atX - canvas.originOffset.x) * amount
-
-    const windowHeight = canvas.ref?.offsetHeight || 0
-    const isTopOffsetExceed =
-      OFFSET_LIMIT.Y * newScale - windowHeight + canvas.originOffset.y < 0
-    const isBottomOffsetExceed = canvas.originOffset.y > 0
-    const atY =
-      isTopOffsetExceed || isBottomOffsetExceed ? windowHeight / 2 : at.y
-    canvas.originOffset.y = atY - (atY - canvas.originOffset.y) * amount
-
+    const {left, right, top, bottom} = getMapEdges()
+    const isXInMapArea = at.x >= left && at.x <= right
+    const isYInMapArea = at.y >= top && at.y <= bottom
+    const atX = isXInMapArea || amount < 1 ? at.x : (right - left) / 2 + left
+    const atY = isYInMapArea || amount < 1 ? at.y : (bottom - top) / 2 + top
+    canvas.originOffset.x = atX - (atX - left) * amount
+    canvas.originOffset.y = atY - (atY - top) * amount
     isUpdateRequired.current = true
   }
 
