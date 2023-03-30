@@ -9,3 +9,5 @@ export const TILE_BORDER_COLOR = '#ccc'
 export const HEX_TILE_RADIUS = 37
 
 export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5
+
+export const LONG_TOUCH_DURATION_MS = 500

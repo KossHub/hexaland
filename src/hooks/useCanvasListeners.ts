@@ -1,7 +1,7 @@
-import {useRef} from 'react'
+import {useEffect, useRef} from 'react'
 import {inRange, isEqual} from 'lodash'
 
-import {GAME_MAP_BORDER_SIZE, SCALE} from '../constants'
+import {GAME_MAP_BORDER_SIZE, SCALE, LONG_TOUCH_DURATION_MS} from '../constants'
 import {
   CanvasContextState,
   MapEdgesInPixels,
@@ -23,6 +23,18 @@ export const useCanvasListeners = (
   const prevMidpoint = useRef<AxialCoordinates>({x: 0, y: 0})
   const prevTouchesDistance = useRef(0)
   const isUpdateRequired = useRef(true)
+  const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
+  const shouldHandleTouchAsClick = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (touchTimeoutId.current) {
+        clearTimeout(touchTimeoutId.current)
+      }
+
+      shouldHandleTouchAsClick.current = false
+    }
+  }, [])
 
   const clearMap = () => {
     if (!canvas.ref || !canvas.ctx) {
@@ -48,7 +60,8 @@ export const useCanvasListeners = (
       gameMapState.gameMap.drawHexTiles(
         canvas.ctx,
         canvas.scale,
-        gameMapState.hoveredHex
+        gameMapState.hoveredHex,
+        gameMapState.selectedHex
       )
     }
 
@@ -131,17 +144,15 @@ export const useCanvasListeners = (
     isUpdateRequired.current = true
   }
 
-  const setHoveredHex = (mousePosition: null | AxialCoordinates) => {
+  const getHexCubeCoords = (mousePosition: null | AxialCoordinates) => {
     if (!gameMapState.gameMap) {
-      return
+      return null
     }
-
-    isUpdateRequired.current = false
 
     if (!mousePosition) {
       gameMapState.hoveredHex = null
       isUpdateRequired.current = true
-      return
+      return null
     }
 
     const {x, y} = mousePosition
@@ -159,9 +170,24 @@ export const useCanvasListeners = (
       x: shiftedX,
       y: shiftedY
     })
-    gameMapState.hoveredHex = gameMapState.gameMap.doesHexExist(newHoveredHex)
+
+    return gameMapState.gameMap.doesHexExist(newHoveredHex)
       ? newHoveredHex
       : null
+  }
+
+  const setHoveredHex = (mousePosition: null | AxialCoordinates) => {
+    isUpdateRequired.current = false
+    gameMapState.hoveredHex = getHexCubeCoords(mousePosition)
+    isUpdateRequired.current = true
+  }
+
+  const setSelectedHex = (mousePosition: null | AxialCoordinates) => {
+    isUpdateRequired.current = false
+    const coords = getHexCubeCoords(mousePosition)
+    gameMapState.selectedHex = isEqual(gameMapState.selectedHex, coords)
+      ? null
+      : coords
     isUpdateRequired.current = true
   }
 
@@ -208,12 +234,20 @@ export const useCanvasListeners = (
     }
   }
 
+  const handleClick = (event: MouseEvent) => {
+    setSelectedHex({x: event.offsetX, y: event.offsetY})
+  }
+
   const onTouchStart = (event: TouchEvent) => {
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
 
     if (event.touches.length === 1) {
       prevTouches.current = [touch1]
+      shouldHandleTouchAsClick.current = true
+      touchTimeoutId.current = setTimeout(() => {
+        shouldHandleTouchAsClick.current = false
+      }, LONG_TOUCH_DURATION_MS)
     } else if (event.touches.length === 2) {
       prevTouchesDistance.current = getTouchesDistance(touch1, touch2)
       prevMidpoint.current = getTouchesMidpoint(touch1, touch2)
@@ -255,7 +289,27 @@ export const useCanvasListeners = (
       prevTouchesDistance.current = distance
     }
 
+    if (touchTimeoutId.current) {
+      clearTimeout(touchTimeoutId.current)
+    }
+
+    shouldHandleTouchAsClick.current = false
+
     event.preventDefault()
+  }
+
+  const onTouchEnd = () => {
+    if (shouldHandleTouchAsClick.current && prevTouches.current) {
+      const {clientX, clientY} = prevTouches.current[0]
+
+      setSelectedHex({x: clientX, y: clientY})
+    }
+
+    if (touchTimeoutId.current) {
+      clearTimeout(touchTimeoutId.current)
+    }
+
+    shouldHandleTouchAsClick.current = false
   }
 
   const mouseWheelEvent = (event: WheelEvent) => {
@@ -263,7 +317,11 @@ export const useCanvasListeners = (
     const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
     scaleAt({x: offsetX, y: offsetY}, delta)
-    setHoveredHex({x: offsetX, y: offsetY})
+
+    // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
+    if (gameMapState.hoveredHex) {
+      setHoveredHex({x: offsetX, y: offsetY})
+    }
 
     event.preventDefault() // TODO: Check if all preventDefault required on this page
   }
@@ -279,8 +337,10 @@ export const useCanvasListeners = (
     canvas.ref.addEventListener('mousedown', mouseEvent, {passive: true})
     canvas.ref.addEventListener('mouseup', mouseEvent, {passive: true})
     canvas.ref.addEventListener('mouseout', mouseEvent, {passive: true})
+    canvas.ref.addEventListener('click', handleClick, {passive: true})
     canvas.ref.addEventListener('touchstart', onTouchStart)
     canvas.ref.addEventListener('touchmove', onTouchMove)
+    canvas.ref.addEventListener('touchend', onTouchEnd)
     canvas.ref.addEventListener('wheel', mouseWheelEvent)
     window.addEventListener('resize', onResize, {passive: true})
   }
@@ -294,8 +354,10 @@ export const useCanvasListeners = (
     canvas.ref.removeEventListener('mousedown', mouseEvent)
     canvas.ref.removeEventListener('mouseup', mouseEvent)
     canvas.ref.removeEventListener('mouseout', mouseEvent)
+    canvas.ref.removeEventListener('click', handleClick)
     canvas.ref.removeEventListener('touchstart', onTouchStart)
     canvas.ref.removeEventListener('touchmove', onTouchMove)
+    canvas.ref.removeEventListener('touchend', onTouchEnd)
     canvas.ref.removeEventListener('wheel', mouseWheelEvent)
     window.removeEventListener('resize', onResize)
   }

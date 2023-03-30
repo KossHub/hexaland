@@ -4,4 +4,5 @@ import {ShortCubeCoordinates} from '../canvas/interfaces'
 export interface GameMapContextState {
   gameMap: null | RectMap
   hoveredHex: null | ShortCubeCoordinates
+  selectedHex: null | ShortCubeCoordinates
 }

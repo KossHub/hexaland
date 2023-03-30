@@ -9,10 +9,12 @@ const GameMapProvider: React.FC<PropsWithChildren> = (props) => {
 
   const gameMapRef = useRef<GameMapContextState['gameMap']>(null)
   const hoveredHexRef = useRef<GameMapContextState['hoveredHex']>(null)
+  const selectedHexRef = useRef<GameMapContextState['selectedHex']>(null)
 
   const contextValue: GameMapContextState = {
     gameMap: gameMapRef.current,
-    hoveredHex: hoveredHexRef.current
+    hoveredHex: hoveredHexRef.current,
+    selectedHex: selectedHexRef.current
   }
 
   return (

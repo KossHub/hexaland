@@ -56,7 +56,7 @@ const UserProfileModal = () => {
   const {currentUser} = useContext(AuthContext)
   const {openedModal, setOpenedModal} = useContext(ModalsContext)
 
-  const timerRef = useRef<null | ReturnType<typeof setTimeout>>(null)
+  const timeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [isChangePasswordMode, setIsChangePasswordMode] = useState(false)
@@ -119,8 +119,8 @@ const UserProfileModal = () => {
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
+      if (timeoutId.current) {
+        clearTimeout(timeoutId.current)
       }
     }
   }, [])
@@ -268,7 +268,7 @@ const UserProfileModal = () => {
         variant: 'error',
         onlyBottom: true
       })
-      timerRef.current = setTimeout(() => {
+      timeoutId.current = setTimeout(() => {
         setIsSendVerificationFailed(false)
       }, 60000)
     }

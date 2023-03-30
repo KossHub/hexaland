@@ -24,7 +24,8 @@ export class GameMap {
   private drawHexTile(
     ctx: CanvasContextState['ctx'],
     coordinates: AxialCoordinates,
-    isHighlighted?: boolean
+    isHighlighted?: boolean,
+    isSelected?: boolean
   ) {
     if (!ctx) {
       return
@@ -54,6 +55,11 @@ export class GameMap {
       ctx.fill()
     }
 
+    if (isSelected) {
+      ctx.fillStyle = '#aaa'
+      ctx.fill()
+    }
+
     ctx.restore()
   }
 
@@ -64,7 +70,8 @@ export class GameMap {
   public drawHexTiles(
     ctx: CanvasContextState['ctx'],
     scale = 1,
-    hoveredHex: GameMapContextState['hoveredHex']
+    hoveredHex?: GameMapContextState['hoveredHex'],
+    selectedHex?: GameMapContextState['selectedHex']
   ) {
     if (!ctx) {
       return
@@ -72,7 +79,9 @@ export class GameMap {
 
     this._mapTuple.forEach(([q, r]) => {
       const hexTile = new Hex(q, r)
-      const isHighlighted = q === hoveredHex?.q && r === hoveredHex?.r
+      const isSelected = q === selectedHex?.q && r === selectedHex?.r
+      const isHighlighted =
+        !isSelected && q === hoveredHex?.q && r === hoveredHex?.r
       const originCoords = hexTile.getAxialCoordinates(this._hexRadius)
       const shiftedCoords = {
         x:
@@ -85,7 +94,7 @@ export class GameMap {
           GAME_MAP_BORDER_SIZE / scale // border
       }
 
-      this.drawHexTile(ctx, shiftedCoords, isHighlighted)
+      this.drawHexTile(ctx, shiftedCoords, isHighlighted, isSelected)
     })
   }
 

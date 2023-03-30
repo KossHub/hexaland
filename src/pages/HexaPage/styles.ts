@@ -10,6 +10,8 @@ export const PageContainer = styled(Container)(({theme}) => ({
   },
 
   [theme.breakpoints.down('md')]: {
-    paddingBottom: theme.spacing(7)
+    '&.MuiContainer-root': {
+      paddingBottom: theme.spacing(7)
+    }
   }
 }))

@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 
 import TopBar from '../../components/TopBar'
 import MobileMenu from '../../components/MobileMenu'
@@ -14,6 +14,20 @@ import * as UI from './styles'
 
 const HexaPage = () => {
   const [isNavbarShown, setIsNavbarShown] = useState(true)
+
+  useEffect(() => {
+    const handler = (event: BeforeUnloadEvent) => {
+      // TODO: add condition if the game is active
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handler)
+
+    return () => {
+      window.removeEventListener('beforeunload', handler)
+    }
+  }, [])
 
   return (
     <ModalsProvider>
