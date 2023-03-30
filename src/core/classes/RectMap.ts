@@ -46,7 +46,7 @@ export class RectMap extends GameMap {
     const cubeCoordsTuple: RectMapCubeCoords[] = []
 
     for (let r = top; r <= bottom; r++) {
-      const r_offset = Math.floor(r / 2.0) // or r>>1
+      const r_offset = r >> 1 // Math.floor(r / 2.0)
       for (let q = left - r_offset; q <= right - r_offset; q++) {
         cubeCoordsTuple.push([q, r])
       }

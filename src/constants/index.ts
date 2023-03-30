@@ -4,7 +4,7 @@ export const SCALE = {
   INIT: 1
 }
 
-export const TILE_BORDER_COLOR = '#ababab'
+export const TILE_BORDER_COLOR = '#ccc'
 
 export const HEX_TILE_RADIUS = 37
 

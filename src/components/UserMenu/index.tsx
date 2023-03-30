@@ -70,7 +70,7 @@ const UserMenu = (props: UserMenuProps) => {
       <Divider />
       <MenuItem onClick={handleLogout}>
         <LogoutIcon sx={{mr: 2}} fontSize="small" color="action" />
-        Выйти из аккаунта (v1.0.10)
+        Выйти из аккаунта (v1.0.11)
       </MenuItem>
     </Menu>
   )

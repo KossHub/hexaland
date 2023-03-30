@@ -1,5 +1,5 @@
 import {useRef} from 'react'
-import {inRange} from 'lodash'
+import {inRange, isEqual} from 'lodash'
 
 import {GAME_MAP_BORDER_SIZE, SCALE} from '../constants'
 import {
@@ -45,7 +45,11 @@ export const useCanvasListeners = (
   const drawCanvas = () => {
     if (canvas.ctx && isUpdateRequired.current && gameMapState.gameMap) {
       clearMap()
-      gameMapState.gameMap.drawHexTiles(canvas.ctx)
+      gameMapState.gameMap.drawHexTiles(
+        canvas.ctx,
+        canvas.scale,
+        gameMapState.hoveredHex
+      )
     }
 
     requestAnimationFrame(drawCanvas)
@@ -56,11 +60,11 @@ export const useCanvasListeners = (
     right:
       canvas.originOffset.x +
       gameMapState.gameMap!.widthInPixels * canvas.scale +
-      2 * GAME_MAP_BORDER_SIZE * canvas.scale,
+      2 * GAME_MAP_BORDER_SIZE,
     bottom:
       canvas.originOffset.y +
       gameMapState.gameMap!.heightInPixels * canvas.scale +
-      2 * GAME_MAP_BORDER_SIZE * canvas.scale,
+      2 * GAME_MAP_BORDER_SIZE,
     left: canvas.originOffset.x
   })
 
@@ -68,7 +72,6 @@ export const useCanvasListeners = (
     isUpdateRequired.current = false
 
     const {left, right, top, bottom} = getMapEdgesInPixels()
-
     const windowWidth = canvas.ref?.width || 0
     const newOffsetX = left + offsetAmount.x
     const isLeftOffsetIncreasing = newOffsetX > left
@@ -101,21 +104,64 @@ export const useCanvasListeners = (
   }
 
   const scaleAt = (at: AxialCoordinates, amount: number) => {
-    const newScale = canvas.scale * amount
+    isUpdateRequired.current = false
+    let newScale = canvas.scale * amount
+    let actuallyAmount = amount
 
     if (!inRange(newScale, SCALE.MIN, SCALE.MAX)) {
-      return
+      if (newScale < SCALE.MIN) {
+        newScale = SCALE.MIN
+        actuallyAmount = SCALE.MIN / canvas.scale
+      } else if (newScale > SCALE.MAX) {
+        newScale = SCALE.MAX
+        actuallyAmount = SCALE.MAX / canvas.scale
+      }
     }
 
-    isUpdateRequired.current = false
     canvas.scale = newScale
     const {left, right, top, bottom} = getMapEdgesInPixels()
     const isXInMapArea = at.x >= left && at.x <= right
     const isYInMapArea = at.y >= top && at.y <= bottom
-    const atX = isXInMapArea || amount < 1 ? at.x : (right - left) / 2 + left
-    const atY = isYInMapArea || amount < 1 ? at.y : (bottom - top) / 2 + top
-    canvas.originOffset.x = atX - (atX - left) * amount
-    canvas.originOffset.y = atY - (atY - top) * amount
+    const atX =
+      isXInMapArea || actuallyAmount < 1 ? at.x : (right - left) / 2 + left
+    const atY =
+      isYInMapArea || actuallyAmount < 1 ? at.y : (bottom - top) / 2 + top
+    canvas.originOffset.x = atX - (atX - left) * actuallyAmount
+    canvas.originOffset.y = atY - (atY - top) * actuallyAmount
+    isUpdateRequired.current = true
+  }
+
+  const setHoveredHex = (mousePosition: null | AxialCoordinates) => {
+    if (!gameMapState.gameMap) {
+      return
+    }
+
+    isUpdateRequired.current = false
+
+    if (!mousePosition) {
+      gameMapState.hoveredHex = null
+      isUpdateRequired.current = true
+      return
+    }
+
+    const {x, y} = mousePosition
+    const shiftedX =
+      x / canvas.scale - // mouse origin
+      canvas.originOffset.x / canvas.scale - // offset
+      (Math.sqrt(3) * gameMapState.gameMap.hexRadius) / 2 - // projecting hex part
+      GAME_MAP_BORDER_SIZE / canvas.scale // border
+    const shiftedY =
+      y / canvas.scale - // mouse origin
+      canvas.originOffset.y / canvas.scale - // offset
+      gameMapState.gameMap.hexRadius - // projecting hex part
+      GAME_MAP_BORDER_SIZE / canvas.scale // border
+    const newHoveredHex = gameMapState.gameMap!.getHexCoords({
+      x: shiftedX,
+      y: shiftedY
+    })
+    gameMapState.hoveredHex = gameMapState.gameMap.doesHexExist(newHoveredHex)
+      ? newHoveredHex
+      : null
     isUpdateRequired.current = true
   }
 
@@ -128,6 +174,7 @@ export const useCanvasListeners = (
     const rect = canvas.ref.getBoundingClientRect()
     canvas.ref.width = Math.round(rect.width)
     canvas.ref.height = Math.round(rect.height)
+    setHoveredHex(null)
     isUpdateRequired.current = true
   }
 
@@ -140,6 +187,10 @@ export const useCanvasListeners = (
       isMouseButtonPressed.current = false
     }
 
+    if (event.type === 'mouseout') {
+      setHoveredHex(null)
+    }
+
     if (isMouseButtonPressed.current) {
       moveOffset({
         x: event.offsetX - mousePrevPos.current.x,
@@ -150,6 +201,10 @@ export const useCanvasListeners = (
     mousePrevPos.current = {
       x: event.offsetX,
       y: event.offsetY
+    }
+
+    if (event.type === 'mousemove') {
+      setHoveredHex({x: event.offsetX, y: event.offsetY})
     }
   }
 
@@ -208,6 +263,8 @@ export const useCanvasListeners = (
     const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
     scaleAt({x: offsetX, y: offsetY}, delta)
+    setHoveredHex({x: offsetX, y: offsetY})
+
     event.preventDefault() // TODO: Check if all preventDefault required on this page
   }
 

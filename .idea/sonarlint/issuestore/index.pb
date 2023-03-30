@@ -161,8 +161,6 @@ S
 -node_modules/@types/lodash/common/number.d.ts,c/2/c2f5c6aa4715c50ce18fec93cb44dd0162d2728c
 O
 src/components/TopBar/index.tsx,8/7/87c02c109230810ae43d1fc12d4759137c3e2fb5
-L
-src/pages/HexaPage/styles.ts,1/2/12364d66f9a1d1b605f7f06503106a0d40206725
 W
 'src/components/ActionListMenu/index.tsx,4/1/41559ee4b5641d17fd8e66d50d36e65da8ece382
 O
