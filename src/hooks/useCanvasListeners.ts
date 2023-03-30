@@ -1,7 +1,12 @@
 import {useEffect, useRef} from 'react'
 import {inRange, isEqual} from 'lodash'
 
-import {GAME_MAP_BORDER_SIZE, SCALE, LONG_TOUCH_DURATION_MS} from '../constants'
+import {
+  GAME_MAP_BORDER_SIZE,
+  SCALE,
+  LONG_TOUCH_DURATION_MS,
+  ACCEPTABLE_TOUCH_OFFSET_PX
+} from '../constants'
 import {
   CanvasContextState,
   MapEdgesInPixels,
@@ -19,12 +24,12 @@ export const useCanvasListeners = (
 ) => {
   const mousePrevPos = useRef<AxialCoordinates>({x: 0, y: 0})
   const isMouseButtonPressed = useRef(false)
+  const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
+  const initTouch = useRef<null | Touch>(null)
   const prevTouches = useRef<Touch[]>([])
   const prevMidpoint = useRef<AxialCoordinates>({x: 0, y: 0})
   const prevTouchesDistance = useRef(0)
   const isUpdateRequired = useRef(true)
-  const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
-  const shouldHandleTouchAsClick = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -32,7 +37,7 @@ export const useCanvasListeners = (
         clearTimeout(touchTimeoutId.current)
       }
 
-      shouldHandleTouchAsClick.current = false
+      initTouch.current = null
     }
   }, [])
 
@@ -243,10 +248,10 @@ export const useCanvasListeners = (
     const touch2 = event.touches[1]
 
     if (event.touches.length === 1) {
+      initTouch.current = touch1
       prevTouches.current = [touch1]
-      shouldHandleTouchAsClick.current = true
       touchTimeoutId.current = setTimeout(() => {
-        shouldHandleTouchAsClick.current = false
+        initTouch.current = null
       }, LONG_TOUCH_DURATION_MS)
     } else if (event.touches.length === 2) {
       prevTouchesDistance.current = getTouchesDistance(touch1, touch2)
@@ -289,19 +294,23 @@ export const useCanvasListeners = (
       prevTouchesDistance.current = distance
     }
 
-    if (touchTimeoutId.current) {
-      clearTimeout(touchTimeoutId.current)
-    }
-
-    shouldHandleTouchAsClick.current = false
-
     event.preventDefault()
   }
 
   const onTouchEnd = () => {
-    if (shouldHandleTouchAsClick.current && prevTouches.current) {
-      const {clientX, clientY} = prevTouches.current[0]
+    const [prevTouch] = prevTouches.current
 
+    if (!initTouch.current || !prevTouch) {
+      return
+    }
+
+    const {clientX, clientY} = initTouch.current
+
+    const isOffsetWithinAcceptable =
+      Math.abs(prevTouch.clientX - clientX) <= ACCEPTABLE_TOUCH_OFFSET_PX &&
+      Math.abs(prevTouch.clientY - clientY) <= ACCEPTABLE_TOUCH_OFFSET_PX
+
+    if (isOffsetWithinAcceptable) {
       setSelectedHex({x: clientX, y: clientY})
     }
 
@@ -309,7 +318,7 @@ export const useCanvasListeners = (
       clearTimeout(touchTimeoutId.current)
     }
 
-    shouldHandleTouchAsClick.current = false
+    initTouch.current = null
   }
 
   const mouseWheelEvent = (event: WheelEvent) => {
