@@ -1,23 +1,26 @@
 import {useRef} from 'react'
 import {inRange} from 'lodash'
 
-import {OFFSET_LIMIT, SCALE} from '../constants'
-import {drawHex} from '../core/utils/canvasDraw.utils'
+import {GAME_MAP_BORDER_SIZE, SCALE} from '../constants'
 import {
   CanvasContextState,
-  MapEdges,
-  Position2D
+  MapEdgesInPixels,
+  AxialCoordinates
 } from '../contexts/canvas/interfaces'
 import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
+import {GameMapContextState} from '../contexts/gameMap/interfaces'
 
-export const useCanvasListeners = (canvas: CanvasContextState) => {
-  const mousePrevPos = useRef<Position2D>({x: 0, y: 0})
+export const useCanvasListeners = (
+  canvas: CanvasContextState,
+  gameMapState: GameMapContextState
+) => {
+  const mousePrevPos = useRef<AxialCoordinates>({x: 0, y: 0})
   const isMouseButtonPressed = useRef(false)
   const prevTouches = useRef<Touch[]>([])
-  const prevMidpoint = useRef<Position2D>({x: 0, y: 0})
+  const prevMidpoint = useRef<AxialCoordinates>({x: 0, y: 0})
   const prevTouchesDistance = useRef(0)
   const isUpdateRequired = useRef(true)
 
@@ -40,26 +43,31 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
   }
 
   const drawCanvas = () => {
-    if (canvas.ctx && isUpdateRequired.current) {
+    if (canvas.ctx && isUpdateRequired.current && gameMapState.gameMap) {
       clearMap()
-
-      drawHex(canvas.ctx, {radius: 50, coords: {x: 500, y: 500}})
+      gameMapState.gameMap.drawHexTiles(canvas.ctx)
     }
 
     requestAnimationFrame(drawCanvas)
   }
 
-  const getMapEdges = (): MapEdges => ({
+  const getMapEdgesInPixels = (): MapEdgesInPixels => ({
     top: canvas.originOffset.y,
-    right: canvas.originOffset.x + OFFSET_LIMIT.X * canvas.scale,
-    bottom: canvas.originOffset.y + OFFSET_LIMIT.Y * canvas.scale,
+    right:
+      canvas.originOffset.x +
+      gameMapState.gameMap!.widthInPixels * canvas.scale +
+      2 * GAME_MAP_BORDER_SIZE * canvas.scale,
+    bottom:
+      canvas.originOffset.y +
+      gameMapState.gameMap!.heightInPixels * canvas.scale +
+      2 * GAME_MAP_BORDER_SIZE * canvas.scale,
     left: canvas.originOffset.x
   })
 
-  const moveOffset = (offsetAmount: Position2D) => {
+  const moveOffset = (offsetAmount: AxialCoordinates) => {
     isUpdateRequired.current = false
 
-    const {left, right, top, bottom} = getMapEdges()
+    const {left, right, top, bottom} = getMapEdgesInPixels()
 
     const windowWidth = canvas.ref?.width || 0
     const newOffsetX = left + offsetAmount.x
@@ -92,7 +100,7 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
     isUpdateRequired.current = true
   }
 
-  const scaleAt = (at: Position2D, amount: number) => {
+  const scaleAt = (at: AxialCoordinates, amount: number) => {
     const newScale = canvas.scale * amount
 
     if (!inRange(newScale, SCALE.MIN, SCALE.MAX)) {
@@ -101,7 +109,7 @@ export const useCanvasListeners = (canvas: CanvasContextState) => {
 
     isUpdateRequired.current = false
     canvas.scale = newScale
-    const {left, right, top, bottom} = getMapEdges()
+    const {left, right, top, bottom} = getMapEdgesInPixels()
     const isXInMapArea = at.x >= left && at.x <= right
     const isYInMapArea = at.y >= top && at.y <= bottom
     const atX = isXInMapArea || amount < 1 ? at.x : (right - left) / 2 + left

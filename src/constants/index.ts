@@ -1,10 +1,11 @@
 export const SCALE = {
-  MIN: 0.1,
-  MAX: 2,
+  MIN: 0.2,
+  MAX: 1,
   INIT: 1
 }
 
-export const OFFSET_LIMIT = {
-  X: 2400,
-  Y: 2400
-}
+export const TILE_BORDER_COLOR = '#ababab'
+
+export const HEX_TILE_RADIUS = 37
+
+export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5

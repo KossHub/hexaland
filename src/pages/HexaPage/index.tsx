@@ -8,6 +8,7 @@ import SettingsModal from '../../modals/SettingsModal'
 import DonationModal from '../../modals/DonationModal'
 import ConfirmLogoutModal from '../../modals/ConfirmLogoutModal'
 import CanvasProvider from '../../contexts/canvas'
+import GameMapProvider from '../../contexts/gameMap'
 import ModalsProvider from '../../contexts/modals'
 import * as UI from './styles'
 
@@ -23,8 +24,10 @@ const HexaPage = () => {
 
       <UI.PageContainer maxWidth={false}>
         <CanvasProvider>
-          <MobileMenu />
-          <Canvas />
+          <GameMapProvider>
+            <MobileMenu />
+            <Canvas />
+          </GameMapProvider>
         </CanvasProvider>
         <UserProfileModal />
         <SettingsModal />

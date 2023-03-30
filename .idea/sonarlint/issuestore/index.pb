@@ -57,8 +57,6 @@ e
 5node_modules/@mui/material/IconButton/IconButton.d.ts,0/9/09783ec9c7312f81bdc053bc161fe1ffcc3ce261
 Q
 !src/pages/SignupPage/constants.ts,6/6/6686e49855a9fc436913b36e36416078ccd54b50
-=
-src/index.tsx,5/a/5ab44fe33ca96299f51ad4778a73e425b92bf439
 O
 src/components/Button/index.tsx,4/1/41c7ed4e802aa1d0b1a4423e2af40bd888b1c223
 J
@@ -165,8 +163,6 @@ O
 src/components/TopBar/index.tsx,8/7/87c02c109230810ae43d1fc12d4759137c3e2fb5
 L
 src/pages/HexaPage/styles.ts,1/2/12364d66f9a1d1b605f7f06503106a0d40206725
-L
-src/pages/HexaPage/index.tsx,e/6/e6ed1b51eeb2c129a9f78afb9cf9fa902739bfd3
 W
 'src/components/ActionListMenu/index.tsx,4/1/41559ee4b5641d17fd8e66d50d36e65da8ece382
 O
@@ -179,7 +175,5 @@ X
 (node_modules/typescript/lib/lib.dom.d.ts,7/6/769405d18246a75b5b27d787a1de78a989e4955a
 T
 $node_modules/@types/react/index.d.ts,e/6/e6e15d6af3efe43cb710ed81a622398127753dfa
-O
-src/components/Canvas/styles.ts,9/d/9da003c090a4aa8c4008216a9e424b4d6aab9058
 X
 (node_modules/typescript/lib/lib.es5.d.ts,3/d/3d99373f7b5eef4201ca57a888c1ec02e798f630

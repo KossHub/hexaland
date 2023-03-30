@@ -1,4 +1,4 @@
-import {Position2D} from '../../contexts/canvas/interfaces'
+import {AxialCoordinates} from '../../contexts/canvas/interfaces'
 
 export const getTouchesDistance = (touch1: Touch, touch2: Touch) =>
   Math.sqrt(
@@ -9,7 +9,10 @@ export const getTouchesDistance = (touch1: Touch, touch2: Touch) =>
 export const getTouchesMidpoint = (
   touch1: Touch,
   touch2: Touch
-): Position2D => ({
+): AxialCoordinates => ({
   x: (touch1.clientX + touch2.clientX) / 2,
   y: (touch1.clientY + touch2.clientY) / 2
 })
+
+export const getHexTileWidth = (radius: number) => radius * Math.sqrt(3)
+export const getHexTileHeight = (radius: number) => radius * 2
