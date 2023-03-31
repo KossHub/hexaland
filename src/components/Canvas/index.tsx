@@ -66,7 +66,11 @@ const Canvas = () => {
     }
   }, [isInitialized])
 
-  return <UI.Canvas ref={canvasRef} />
+  return (
+    <UI.Wrapper>
+      <canvas ref={canvasRef} />
+    </UI.Wrapper>
+  )
 }
 
 export default Canvas

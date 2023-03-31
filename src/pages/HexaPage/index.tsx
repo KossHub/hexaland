@@ -39,8 +39,8 @@ const HexaPage = () => {
       <UI.PageContainer maxWidth={false}>
         <CanvasProvider>
           <GameMapProvider>
-            <MobileMenu />
             <Canvas />
+            <MobileMenu />
           </GameMapProvider>
         </CanvasProvider>
         <UserProfileModal />

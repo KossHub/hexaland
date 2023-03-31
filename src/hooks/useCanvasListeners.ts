@@ -190,7 +190,7 @@ export const useCanvasListeners = (
   const setSelectedHex = (mousePosition: null | AxialCoordinates) => {
     isUpdateRequired.current = false
     const coords = getHexCubeCoords(mousePosition)
-    gameMapState.selectedHex = isEqual(gameMapState.selectedHex, coords)
+    gameMapState.selectedHex = isEqual(coords, gameMapState.selectedHex)
       ? null
       : coords
     isUpdateRequired.current = true

@@ -1,17 +1,13 @@
 import {styled} from '@mui/material/styles'
 import {Container} from '@mui/material'
 
-export const PageContainer = styled(Container)(({theme}) => ({
+export const PageContainer = styled(Container)({
   position: 'relative',
-  height: '100vh',
+  height: '100%',
 
   '&.MuiContainer-root': {
+    display: 'flex',
+    flexDirection: 'column',
     padding: 0
-  },
-
-  [theme.breakpoints.down('md')]: {
-    '&.MuiContainer-root': {
-      paddingBottom: theme.spacing(7)
-    }
   }
-}))
+})
