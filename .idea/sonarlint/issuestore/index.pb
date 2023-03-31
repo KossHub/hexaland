@@ -163,7 +163,5 @@ U
 %node_modules/@types/react/global.d.ts,4/1/414e9ea44090cb18573fd9cceea70501b2e799d8
 X
 (node_modules/typescript/lib/lib.dom.d.ts,7/6/769405d18246a75b5b27d787a1de78a989e4955a
-T
-$node_modules/@types/react/index.d.ts,e/6/e6e15d6af3efe43cb710ed81a622398127753dfa
 X
 (node_modules/typescript/lib/lib.es5.d.ts,3/d/3d99373f7b5eef4201ca57a888c1ec02e798f630

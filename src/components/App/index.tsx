@@ -27,7 +27,9 @@ const App = () => {
         // TODO: move to a separate file
         styles={{
           html: {
-            height: '100% !important'
+            height: '100% !important',
+            overflow: 'hidden',
+            overscrollBehavior: 'none' // disable refresh page behavior on mobile
           },
           body: {
             height: '100%',

@@ -31,6 +31,8 @@ const Canvas = () => {
 
     if (canvas.ref === null) {
       canvas.ref = canvasRef.current
+      // @ts-ignore
+      window.C = canvas.ref
       canvas.ref.width = canvas.ref.offsetWidth
       canvas.ref.height = canvas.ref.offsetHeight
     }
