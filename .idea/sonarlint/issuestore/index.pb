@@ -63,8 +63,6 @@ P
  src/pages/LoginPage/constants.ts,a/1/a104a57677fd3b344544b9d140e817838ba792e7
 C
 src/styles/index.js,0/c/0c16fcddd52364a7fc123bab394e0e6b772789b9
-<
-package.json,7/0/7030d0b2f71b999ff89a343de08c414af32fc93a
 e
 5node_modules/@mui/system/createTheme/createTheme.d.ts,a/c/acb893e84d9b6ed565bbb47e7824a2d5865bd9c6
 D
@@ -117,5 +115,3 @@ X
 (node_modules/typescript/lib/lib.es5.d.ts,3/d/3d99373f7b5eef4201ca57a888c1ec02e798f630
 g
 7node_modules/@mui/material/CssBaseline/CssBaseline.d.ts,9/1/914c71403e40b515c91429e223d5c6236a14a81a
-T
-$node_modules/@types/react/index.d.ts,e/6/e6e15d6af3efe43cb710ed81a622398127753dfa

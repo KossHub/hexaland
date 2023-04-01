@@ -1,8 +1,8 @@
 import {RectMapCubeCoords} from '../../interfaces/map.interfaces'
 import {
-  AxialCoordinates,
+  AxialCoords,
   CanvasContextState,
-  ShortCubeCoordinates
+  ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
 import {
@@ -73,7 +73,7 @@ export class GameMap {
 
   private drawHexTile(
     ctx: CanvasContextState['ctx'],
-    coordinates: AxialCoordinates,
+    coords: AxialCoords,
     isHighlighted?: boolean,
     isSelected?: boolean
   ) {
@@ -96,20 +96,29 @@ export class GameMap {
 
     ctx.drawImage(
       offscreenCanvasTemplate,
-      coordinates.x - this._hexRadius,
-      coordinates.y - this._hexRadius
+      coords.x - this._hexRadius,
+      coords.y - this._hexRadius
     )
 
     ctx.restore()
   }
 
-  public doesHexExist(coords: ShortCubeCoordinates) {
+  // protected get
+
+  /** Calculates is hex center point on screen */
+  // public isHexOnScreen(coords: ShortCubeCoords) {
+  //
+  // }
+
+  public doesHexExist(coords: ShortCubeCoords) {
     return this._mapTuple.some(([q, r]) => q === coords.q && r === coords.r)
   }
 
   public drawHexTiles(
     ctx: CanvasContextState['ctx'],
     scale = 1,
+    centerHexCoords?: ShortCubeCoords,
+    // canvasWidth, Height
     hoveredHex?: GameMapContextState['hoveredHex'],
     selectedHex?: GameMapContextState['selectedHex']
   ) {
@@ -122,23 +131,16 @@ export class GameMap {
       const isSelected = q === selectedHex?.q && r === selectedHex?.r
       const isHighlighted =
         !isSelected && q === hoveredHex?.q && r === hoveredHex?.r
-      const originCoords = hexTile.getAxialCoordinates(this._hexRadius)
-      const shiftedCoords = {
-        x:
-          originCoords.x + // origin
-          (Math.sqrt(3) * this._hexRadius) / 2 + // projecting hex part
-          GAME_MAP_BORDER_SIZE / scale, // border
-        y:
-          originCoords.y + // origin
-          this._hexRadius + // projecting hex part
-          GAME_MAP_BORDER_SIZE / scale // border
-      }
+      const shiftedCoords = hexTile.getAxialShiftedCoords(
+        this._hexRadius,
+        scale
+      )
 
       this.drawHexTile(ctx, shiftedCoords, isHighlighted, isSelected)
     })
   }
 
-  public getHexCoords(pixelCoords: AxialCoordinates): ShortCubeCoordinates {
+  public getHexCoords(pixelCoords: AxialCoords): ShortCubeCoords {
     const {x, y} = pixelCoords
     const fractionalQ = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / this._hexRadius
     const fractionalR = ((2 / 3) * y) / this._hexRadius

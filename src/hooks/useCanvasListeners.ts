@@ -5,12 +5,15 @@ import {
   GAME_MAP_BORDER_SIZE,
   SCALE,
   LONG_TOUCH_DURATION_MS,
-  ACCEPTABLE_CLICK_OFFSET_PX
+  ACCEPTABLE_CLICK_OFFSET_PX,
+  ZERO_AXIAL_COORDS,
+  ZERO_SHORT_CUBE_COORDS
 } from '../constants'
 import {
   CanvasContextState,
   MapEdgesInPixels,
-  AxialCoordinates
+  AxialCoords,
+  ShortCubeCoords
 } from '../contexts/canvas/interfaces'
 import {
   getTouchesDistance,
@@ -22,15 +25,15 @@ export const useCanvasListeners = (
   canvas: CanvasContextState,
   gameMapState: GameMapContextState
 ) => {
-  const mouseDownInitPos = useRef<AxialCoordinates>({x: 0, y: 0})
-  const mousePrevPos = useRef<AxialCoordinates>({x: 0, y: 0})
+  const mouseDownInitPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
+  const mousePrevPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const isMouseButtonPressed = useRef(false)
   const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
   const initTouch = useRef<null | Touch>(null)
   const prevTouches = useRef<Touch[]>([])
-  const prevMidpoint = useRef<AxialCoordinates>({x: 0, y: 0})
+  const prevMidpoint = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const prevTouchesDistance = useRef(0)
-  const isUpdateRequired = useRef(true)
+  const centerHexCoords = useRef<ShortCubeCoords>(ZERO_SHORT_CUBE_COORDS)
 
   useEffect(() => {
     return () => {
@@ -49,7 +52,6 @@ export const useCanvasListeners = (
 
     canvas.ctx.setTransform(1, 0, 0, 1, 0, 0)
     canvas.ctx.clearRect(0, 0, canvas.ref.width, canvas.ref.height)
-    isUpdateRequired.current = false
     canvas.ctx.setTransform(
       canvas.scale,
       0,
@@ -61,17 +63,20 @@ export const useCanvasListeners = (
   }
 
   const drawCanvas = () => {
-    if (canvas.ctx && isUpdateRequired.current && gameMapState.gameMap) {
+    if (canvas.ctx && gameMapState.gameMap) {
       clearMap()
       gameMapState.gameMap.drawHexTiles(
         canvas.ctx,
         canvas.scale,
+        centerHexCoords.current,
         gameMapState.hoveredHex,
         gameMapState.selectedHex
       )
     }
 
-    requestAnimationFrame(drawCanvas)
+    if (canvas.ref) {
+      requestAnimationFrame(drawCanvas)
+    }
   }
 
   const getMapEdgesInPixels = (): MapEdgesInPixels => ({
@@ -87,9 +92,46 @@ export const useCanvasListeners = (
     left: canvas.originOffset.x
   })
 
-  const moveOffset = (offsetAmount: AxialCoordinates) => {
-    isUpdateRequired.current = false
+  /** returns coords even out of game mar area */
+  const getHexCubeCoords = (mousePosition: null | AxialCoords) => {
+    if (!gameMapState.gameMap) {
+      return null
+    }
 
+    if (!mousePosition) {
+      gameMapState.hoveredHex = null
+      return null
+    }
+
+    const {x, y} = mousePosition
+    const shiftedX =
+      x / canvas.scale - // mouse origin
+      canvas.originOffset.x / canvas.scale - // offset
+      (Math.sqrt(3) * gameMapState.gameMap.hexRadius) / 2 - // projecting hex part
+      GAME_MAP_BORDER_SIZE / canvas.scale // border
+    const shiftedY =
+      y / canvas.scale - // mouse origin
+      canvas.originOffset.y / canvas.scale - // offset
+      gameMapState.gameMap.hexRadius - // projecting hex part
+      GAME_MAP_BORDER_SIZE / canvas.scale // border
+
+    return gameMapState.gameMap.getHexCoords({
+      x: shiftedX,
+      y: shiftedY
+    })
+  }
+
+  const updateCenterHex = () => {
+    const canvasWidth = canvas.ref?.width || 0
+    const canvasHeight = canvas.ref?.height || 0
+    centerHexCoords.current =
+      getHexCubeCoords({
+        x: canvasWidth / 2,
+        y: canvasHeight / 2
+      }) || ZERO_SHORT_CUBE_COORDS
+  }
+
+  const moveOffset = (offsetAmount: AxialCoords) => {
     const {left, right, top, bottom} = getMapEdgesInPixels()
     const windowWidth = canvas.ref?.width || 0
     const newOffsetX = left + offsetAmount.x
@@ -118,12 +160,9 @@ export const useCanvasListeners = (
     ) {
       canvas.originOffset.y = newOffsetY
     }
-
-    isUpdateRequired.current = true
   }
 
-  const scaleAt = (at: AxialCoordinates, amount: number) => {
-    isUpdateRequired.current = false
+  const scaleAt = (at: AxialCoords, amount: number) => {
     let newScale = canvas.scale * amount
     let actuallyAmount = amount
 
@@ -147,54 +186,24 @@ export const useCanvasListeners = (
       isYInMapArea || actuallyAmount < 1 ? at.y : (bottom - top) / 2 + top
     canvas.originOffset.x = atX - (atX - left) * actuallyAmount
     canvas.originOffset.y = atY - (atY - top) * actuallyAmount
-    isUpdateRequired.current = true
   }
 
-  const getHexCubeCoords = (mousePosition: null | AxialCoordinates) => {
-    if (!gameMapState.gameMap) {
-      return null
-    }
-
-    if (!mousePosition) {
-      gameMapState.hoveredHex = null
-      isUpdateRequired.current = true
-      return null
-    }
-
-    const {x, y} = mousePosition
-    const shiftedX =
-      x / canvas.scale - // mouse origin
-      canvas.originOffset.x / canvas.scale - // offset
-      (Math.sqrt(3) * gameMapState.gameMap.hexRadius) / 2 - // projecting hex part
-      GAME_MAP_BORDER_SIZE / canvas.scale // border
-    const shiftedY =
-      y / canvas.scale - // mouse origin
-      canvas.originOffset.y / canvas.scale - // offset
-      gameMapState.gameMap.hexRadius - // projecting hex part
-      GAME_MAP_BORDER_SIZE / canvas.scale // border
-    const newHoveredHex = gameMapState.gameMap!.getHexCoords({
-      x: shiftedX,
-      y: shiftedY
-    })
-
-    return gameMapState.gameMap.doesHexExist(newHoveredHex)
-      ? newHoveredHex
-      : null
+  const setHoveredHex = (mousePosition: null | AxialCoords) => {
+    const hexCoords = getHexCubeCoords(mousePosition)
+    gameMapState.hoveredHex =
+      hexCoords && gameMapState.gameMap!.doesHexExist(hexCoords)
+        ? hexCoords
+        : null
   }
 
-  const setHoveredHex = (mousePosition: null | AxialCoordinates) => {
-    isUpdateRequired.current = false
-    gameMapState.hoveredHex = getHexCubeCoords(mousePosition)
-    isUpdateRequired.current = true
-  }
-
-  const setSelectedHex = (mousePosition: null | AxialCoordinates) => {
-    isUpdateRequired.current = false
-    const coords = getHexCubeCoords(mousePosition)
-    gameMapState.selectedHex = isEqual(coords, gameMapState.selectedHex)
-      ? null
-      : coords
-    isUpdateRequired.current = true
+  const setSelectedHex = (mousePosition: null | AxialCoords) => {
+    const hexCoords = getHexCubeCoords(mousePosition)
+    gameMapState.selectedHex =
+      hexCoords &&
+      gameMapState.gameMap!.doesHexExist(hexCoords) &&
+      isEqual(hexCoords, gameMapState.selectedHex)
+        ? null
+        : hexCoords
   }
 
   const onResize = () => {
@@ -202,12 +211,11 @@ export const useCanvasListeners = (
       return
     }
 
-    isUpdateRequired.current = false
     const rect = canvas.ref.getBoundingClientRect()
     canvas.ref.width = Math.round(rect.width)
     canvas.ref.height = Math.round(rect.height)
     setHoveredHex(null)
-    isUpdateRequired.current = true
+    updateCenterHex()
   }
 
   const mouseEvent = (event: MouseEvent) => {
@@ -232,6 +240,7 @@ export const useCanvasListeners = (
         x: event.offsetX - mousePrevPos.current.x,
         y: event.offsetY - mousePrevPos.current.y
       })
+      updateCenterHex()
     }
 
     const isOffsetWithinAcceptable =
@@ -257,11 +266,9 @@ export const useCanvasListeners = (
     }
   }
 
-  const handleClick = (event: MouseEvent) => {
-    setSelectedHex({x: event.offsetX, y: event.offsetY})
-  }
-
   const onTouchStart = (event: TouchEvent) => {
+    event.preventDefault()
+
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
 
@@ -277,11 +284,11 @@ export const useCanvasListeners = (
     } else {
       prevTouches.current = []
     }
-
-    event.preventDefault()
   }
 
   const onTouchMove = (event: TouchEvent) => {
+    event.preventDefault()
+
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
 
@@ -307,12 +314,11 @@ export const useCanvasListeners = (
         x: midpoint.x - prevMidpoint.current.x,
         y: midpoint.y - prevMidpoint.current.y
       })
+      updateCenterHex()
 
       prevMidpoint.current = midpoint
       prevTouchesDistance.current = distance
     }
-
-    event.preventDefault()
   }
 
   const onTouchEnd = () => {
@@ -340,7 +346,10 @@ export const useCanvasListeners = (
   }
 
   const mouseWheelEvent = (event: WheelEvent) => {
+    event.preventDefault() // TODO: Check if all preventDefault required on this page
+
     const {offsetX, offsetY, deltaY} = event
+    // TODO: possible point to optimize - use limited length after dot scale value
     const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
     scaleAt({x: offsetX, y: offsetY}, delta)
@@ -350,7 +359,7 @@ export const useCanvasListeners = (
       setHoveredHex({x: offsetX, y: offsetY})
     }
 
-    event.preventDefault() // TODO: Check if all preventDefault required on this page
+    updateCenterHex()
   }
 
   const addCanvasListeners = () => {

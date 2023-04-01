@@ -56,8 +56,8 @@ const Canvas = () => {
 
     gameMapState!.gameMap = new RectMap({
       top: 0,
-      right: 10,
-      bottom: 10,
+      right: 100,
+      bottom: 100,
       left: 0
     })
 

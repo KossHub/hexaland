@@ -1,10 +1,10 @@
 import {RectMap} from '../../core/classes/GameMap/RectMap'
-import {ShortCubeCoordinates} from '../canvas/interfaces'
+import {ShortCubeCoords} from '../canvas/interfaces'
 
 export interface GameMapContextState {
   gameMap: null | RectMap
-  hoveredHex: null | ShortCubeCoordinates
-  selectedHex: null | ShortCubeCoordinates
+  hoveredHex: null | ShortCubeCoords
+  selectedHex: null | ShortCubeCoords
 }
 
 export interface HexTileTemplates {
@@ -12,3 +12,4 @@ export interface HexTileTemplates {
   hovered: null | HTMLCanvasElement
   selected: null | HTMLCanvasElement
 }
+ // TODO: Add NotNullable allContextStates

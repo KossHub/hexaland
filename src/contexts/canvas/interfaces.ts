@@ -1,21 +1,21 @@
-export interface AxialCoordinates {
+export interface AxialCoords {
   x: number
   y: number
 }
 
-export interface CubeCoordinates {
+export interface CubeCoords {
   q: number
   r: number
   s: number
 }
 
-export type ShortCubeCoordinates = Omit<CubeCoordinates, 's'>
+export type ShortCubeCoords = Omit<CubeCoords, 's'>
 
 export interface CanvasContextState {
   ref: null | HTMLCanvasElement
   ctx: null | CanvasRenderingContext2D
   scale: number
-  originOffset: AxialCoordinates
+  originOffset: AxialCoords
 }
 
 export interface MapEdgesInPixels {

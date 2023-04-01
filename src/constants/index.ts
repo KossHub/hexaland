@@ -13,3 +13,7 @@ export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5
 export const LONG_TOUCH_DURATION_MS = 500
 
 export const ACCEPTABLE_CLICK_OFFSET_PX = 10
+
+export const ZERO_AXIAL_COORDS = {x: 0, y: 0}
+
+export const ZERO_SHORT_CUBE_COORDS = {q: 0, r: 0}
