@@ -1,18 +1,18 @@
-import React, {useRef, useState, useEffect, useContext} from 'react'
+import React, {useRef, useState, useEffect} from 'react'
 
-import {CanvasContext} from '../../contexts/canvas'
-import {GameMapContext} from '../../contexts/gameMap'
-import {useCanvasListeners} from '../../hooks/useCanvasListeners'
-import {useSnackbar} from '../../hooks/useSnackbar'
 import {CanvasContextState} from '../../contexts/canvas/interfaces'
 import {GameMapContextState} from '../../contexts/gameMap/interfaces'
-import {RectMap} from '../../core/classes/RectMap'
+import {RectMap} from '../../core/classes/GameMap/RectMap'
+import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
+import {useGameMapContext} from '../../contexts/gameMap/useGameMapContext'
+import {useCanvasListeners} from '../../hooks/useCanvasListeners'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import * as UI from './styles'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
-  const canvas = useContext(CanvasContext)
-  const gameMapState = useContext(GameMapContext)
+  const canvas = useCanvasContext()
+  const gameMapState = useGameMapContext()
 
   const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
     canvas as CanvasContextState,
@@ -56,8 +56,8 @@ const Canvas = () => {
 
     gameMapState!.gameMap = new RectMap({
       top: 0,
-      right: 36,
-      bottom: 36,
+      right: 10,
+      bottom: 10,
       left: 0
     })
 

@@ -7,15 +7,15 @@ import AuthFormWrapper from '../../components/AuthFormWrapper'
 import TextField from '../../components/TextField'
 import Button from '../../components/Button'
 import LoadingButton from '../../components/LoadingButton'
-import {AuthContext} from '../../contexts/auth'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {hasFormEmptyField} from '../../utils/authHelpers'
-import {useSnackbar} from '../../hooks/useSnackbar'
 import {INIT_FORM_STATE} from './constants'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const {enqueueSnackbar, closeSnackbar} = useSnackbar()
-  const {auth} = useContext(AuthContext)
+  const {auth} = useAuthContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [form, setForm] = useState(INIT_FORM_STATE)
@@ -24,10 +24,7 @@ const LoginPage = () => {
     setForm(INIT_FORM_STATE)
   }
 
-  const handleLogin = async (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    event.preventDefault()
+  const handleLogin = async () => {
     setIsLoading(true)
     signInWithEmailAndPassword(auth, form.email, form.password)
       .then(() => {
@@ -78,7 +75,7 @@ const LoginPage = () => {
   }
 
   return (
-    <AuthFormWrapper title="Авторизация">
+    <AuthFormWrapper title="Авторизация" onSubmit={handleLogin}>
       <TextField
         autoFocus
         required
@@ -99,7 +96,6 @@ const LoginPage = () => {
       />
       <LoadingButton
         type="submit"
-        onClick={handleLogin}
         loading={isLoading}
         disabled={hasFormEmptyField(form)}
       >

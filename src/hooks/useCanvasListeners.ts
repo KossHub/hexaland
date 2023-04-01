@@ -5,7 +5,7 @@ import {
   GAME_MAP_BORDER_SIZE,
   SCALE,
   LONG_TOUCH_DURATION_MS,
-  ACCEPTABLE_TOUCH_OFFSET_PX
+  ACCEPTABLE_CLICK_OFFSET_PX
 } from '../constants'
 import {
   CanvasContextState,
@@ -22,6 +22,7 @@ export const useCanvasListeners = (
   canvas: CanvasContextState,
   gameMapState: GameMapContextState
 ) => {
+  const mouseDownInitPos = useRef<AxialCoordinates>({x: 0, y: 0})
   const mousePrevPos = useRef<AxialCoordinates>({x: 0, y: 0})
   const isMouseButtonPressed = useRef(false)
   const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
@@ -211,6 +212,10 @@ export const useCanvasListeners = (
 
   const mouseEvent = (event: MouseEvent) => {
     if (event.type === 'mousedown') {
+      mouseDownInitPos.current = {
+        x: event.offsetX,
+        y: event.offsetY
+      }
       isMouseButtonPressed.current = true
     }
 
@@ -229,13 +234,26 @@ export const useCanvasListeners = (
       })
     }
 
-    mousePrevPos.current = {
-      x: event.offsetX,
-      y: event.offsetY
+    const isOffsetWithinAcceptable =
+      Math.abs(mouseDownInitPos.current.x - event.offsetX) <=
+        ACCEPTABLE_CLICK_OFFSET_PX &&
+      Math.abs(mouseDownInitPos.current.y - event.offsetY) <=
+        ACCEPTABLE_CLICK_OFFSET_PX
+
+    if (event.type === 'mouseup' && isOffsetWithinAcceptable) {
+      setSelectedHex({
+        x: mouseDownInitPos.current.x,
+        y: mouseDownInitPos.current.y
+      })
     }
 
     if (event.type === 'mousemove') {
       setHoveredHex({x: event.offsetX, y: event.offsetY})
+    }
+
+    mousePrevPos.current = {
+      x: event.offsetX,
+      y: event.offsetY
     }
   }
 
@@ -307,8 +325,8 @@ export const useCanvasListeners = (
     const {clientX, clientY} = initTouch.current
 
     const isOffsetWithinAcceptable =
-      Math.abs(prevTouch.clientX - clientX) <= ACCEPTABLE_TOUCH_OFFSET_PX &&
-      Math.abs(prevTouch.clientY - clientY) <= ACCEPTABLE_TOUCH_OFFSET_PX
+      Math.abs(prevTouch.clientX - clientX) <= ACCEPTABLE_CLICK_OFFSET_PX &&
+      Math.abs(prevTouch.clientY - clientY) <= ACCEPTABLE_CLICK_OFFSET_PX
 
     if (isOffsetWithinAcceptable) {
       setSelectedHex({x: clientX, y: clientY})
@@ -346,7 +364,6 @@ export const useCanvasListeners = (
     canvas.ref.addEventListener('mousedown', mouseEvent, {passive: true})
     canvas.ref.addEventListener('mouseup', mouseEvent, {passive: true})
     canvas.ref.addEventListener('mouseout', mouseEvent, {passive: true})
-    canvas.ref.addEventListener('click', handleClick, {passive: true})
     canvas.ref.addEventListener('touchstart', onTouchStart)
     canvas.ref.addEventListener('touchmove', onTouchMove)
     canvas.ref.addEventListener('touchend', onTouchEnd)
@@ -363,7 +380,6 @@ export const useCanvasListeners = (
     canvas.ref.removeEventListener('mousedown', mouseEvent)
     canvas.ref.removeEventListener('mouseup', mouseEvent)
     canvas.ref.removeEventListener('mouseout', mouseEvent)
-    canvas.ref.removeEventListener('click', handleClick)
     canvas.ref.removeEventListener('touchstart', onTouchStart)
     canvas.ref.removeEventListener('touchmove', onTouchMove)
     canvas.ref.removeEventListener('touchend', onTouchEnd)

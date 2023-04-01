@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {deleteUser} from 'firebase/auth'
 import {User as FirebaseUser} from 'firebase/auth'
 import {useNavigate} from 'react-router-dom'
@@ -11,10 +11,10 @@ import {
 } from '@mui/material'
 
 import TextField from '../../components/TextField'
-import {AuthContext} from '../../contexts/auth'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
 import {ConfirmUserDeletionModalProps} from './interfaces'
 import {useVerifyUser} from '../../hooks/useVerifyUser'
-import {useSnackbar} from '../../hooks/useSnackbar'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {MIN_PASS_LENGTH} from '../../pages/SignupPage/constants'
 import * as UI from './styles'
 
@@ -25,7 +25,7 @@ const ConfirmUserDeletionModal: React.FC<ConfirmUserDeletionModalProps> = (
 
   const navigate = useNavigate()
   const verifyUser = useVerifyUser()
-  const {currentUser} = useContext(AuthContext)
+  const {currentUser} = useAuthContext()
   const {enqueueSnackbar, closeSnackbar} = useSnackbar()
 
   const [isLoading, setIsLoading] = useState(false)

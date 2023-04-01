@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom'
 import {Container} from '@mui/material'
 
 import {QRDonationIcon} from '../../assets/QRDonationIcon'
-import {useSnackbar} from '../../hooks/useSnackbar'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 
 const WelcomePage = () => {
   const navigation = useNavigate()

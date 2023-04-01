@@ -15,20 +15,6 @@ import * as UI from './styles'
 const HexaPage = () => {
   const [isNavbarShown, setIsNavbarShown] = useState(true)
 
-  useEffect(() => {
-    const handler = (event: BeforeUnloadEvent) => {
-      // TODO: add condition if the game is active
-      event.preventDefault()
-      event.returnValue = ''
-    }
-
-    window.addEventListener('beforeunload', handler)
-
-    return () => {
-      window.removeEventListener('beforeunload', handler)
-    }
-  }, [])
-
   return (
     <ModalsProvider>
       <TopBar

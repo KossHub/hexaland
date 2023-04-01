@@ -1,4 +1,4 @@
-import React, {useRef, useState, useContext, useEffect} from 'react'
+import React, {useRef, useState, useEffect, useId} from 'react'
 import dayjs from 'dayjs'
 import {
   updateEmail,
@@ -13,48 +13,35 @@ import {
   SaveRounded as SaveRoundedIcon,
   BlockRounded as BlockRoundedIcon
 } from '@mui/icons-material'
+
+import Tooltip from '../../components/Tooltip'
 import * as colors from '@mui/material/colors'
 
 import UIButton from '../../components/Button'
 import FullscreenModal from '../../components/FullscreenModal'
 import TextField from '../../components/TextField'
 import ConfirmUserDeletionModal from '../ConfirmUserDeletionModal'
-import {ModalsContext} from '../../contexts/modals'
-import {AuthContext} from '../../contexts/auth'
-import {ButtonsWrapper, FieldName, FieldValue} from '../styles'
 import VerifyAuthModal from '../VerifyAuthModal'
 import {TextForm} from '../../interfaces'
+import {ButtonsWrapper, FieldName, FieldValue} from '../styles'
+import {useModalsContext} from '../../contexts/modals/useModalsContext'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
 import {useVerifyUser} from '../../hooks/useVerifyUser'
-import {useSnackbar} from '../../hooks/useSnackbar'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {MODAL_NAME} from '../../contexts/modals/constants'
 import {INIT_PASSWORD_FORM_STATE} from './constants'
 import {MIN_PASS_LENGTH} from '../../pages/SignupPage/constants'
 import * as UI from './styles'
 
-// import { useContext } from 'react';
-//
-// import { FormSchemasContext } from './FormSchemasProvider';
-// import { IFormSchemasContext } from './FormSchemasProvider.types';
-//
-// export const useFormSchemasContext = () => {
-//   const context = useContext(FormSchemasContext);
-//
-//   if (context === undefined) {
-//     throw new Error('useFormSchemasContext was used outside of its Provider');
-//   }
-//
-//   return context as IFormSchemasContext;
-// };
-
-// TODO: Add links to firebase email and firebase changePassword page
-// TODO: Dont reset email field everywhere
-// TODO: Separate large components
-// TODO: Pass trimmed values everywhere
+// TODO: split huge component
 const UserProfileModal = () => {
   const verifyUser = useVerifyUser()
   const {enqueueSnackbar, closeSnackbar} = useSnackbar()
-  const {currentUser} = useContext(AuthContext)
-  const {openedModal, setOpenedModal} = useContext(ModalsContext)
+  const {currentUser} = useAuthContext()
+  const {openedModal, setOpenedModal} = useModalsContext()
+
+  const userDataFormId = useId()
+  const passwordFormId = useId()
 
   const timeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
 
@@ -240,11 +227,15 @@ const UserProfileModal = () => {
     setIsEditMode(false)
   }
 
-  const handleSave = async () => {
-    if (isChangePasswordMode) {
-      await handleChangePassword()
-    } else {
+  const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const formId = (event.target as HTMLFormElement).id
+
+    if (formId === userDataFormId) {
       setIsVerifyAuthModalOpen(true)
+    } else if (formId === passwordFormId) {
+      await handleChangePassword()
     }
   }
 
@@ -309,28 +300,35 @@ const UserProfileModal = () => {
       onClose={handleClose}
       button={
         !isEditMode ? (
-          <ButtonsWrapper>
-            <IconButton color="inherit" onClick={() => setIsEditMode(true)}>
-              <EditRoundedIcon />
-            </IconButton>
-          </ButtonsWrapper>
+          <Tooltip placement="bottom-start" title="Редактировать">
+            <ButtonsWrapper>
+              <IconButton color="inherit" onClick={() => setIsEditMode(true)}>
+                <EditRoundedIcon />
+              </IconButton>
+            </ButtonsWrapper>
+          </Tooltip>
         ) : (
           <ButtonsWrapper>
-            <IconButton
-              color="inherit"
-              onClick={() => setIsEditMode(false)}
-              disabled={isLoading}
-            >
-              <BlockRoundedIcon />
-            </IconButton>
+            <Tooltip title="Отменить">
+              <IconButton
+                color="inherit"
+                onClick={() => setIsEditMode(false)}
+                disabled={isLoading}
+              >
+                <BlockRoundedIcon />
+              </IconButton>
+            </Tooltip>
 
-            <IconButton
-              color="inherit"
-              onClick={handleSave}
-              disabled={isLoading || isSaveButtonDisabled}
-            >
-              <SaveRoundedIcon />
-            </IconButton>
+            <Tooltip placement="bottom-start" title="Сохранить">
+              <IconButton
+                color="inherit"
+                type="submit"
+                form={isChangePasswordMode ? passwordFormId : userDataFormId}
+                disabled={isLoading || isSaveButtonDisabled}
+              >
+                <SaveRoundedIcon />
+              </IconButton>
+            </Tooltip>
           </ButtonsWrapper>
         )
       }
@@ -405,7 +403,11 @@ const UserProfileModal = () => {
 
             {isEditMode && !isChangePasswordMode && (
               <>
-                <form autoComplete="off">
+                <form
+                  autoComplete="off"
+                  id={userDataFormId}
+                  onSubmit={handleSave}
+                >
                   <TextField
                     autoFocus
                     required
@@ -435,7 +437,11 @@ const UserProfileModal = () => {
             )}
 
             {isEditMode && isChangePasswordMode && (
-              <>
+              <form
+                autoComplete="off"
+                id={passwordFormId}
+                onSubmit={handleSave}
+              >
                 <TextField
                   autoFocus
                   required
@@ -445,6 +451,7 @@ const UserProfileModal = () => {
                   value={passwordForm.password}
                   onChange={handleChangePasswordFormField}
                   disabled={isLoading}
+                  sx={{mb: 3}}
                 />
                 <TextField
                   required
@@ -454,6 +461,7 @@ const UserProfileModal = () => {
                   value={passwordForm.newPassword}
                   onChange={handleChangePasswordFormField}
                   disabled={isLoading}
+                  sx={{mb: 3}}
                 />
                 <TextField
                   required
@@ -464,7 +472,7 @@ const UserProfileModal = () => {
                   onChange={handleChangePasswordFormField}
                   disabled={isLoading}
                 />
-              </>
+              </form>
             )}
           </UI.UserDataWrapper>
         </UI.Inner>

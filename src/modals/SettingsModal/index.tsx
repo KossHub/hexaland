@@ -1,17 +1,17 @@
-import React, {useContext} from 'react'
+import React from 'react'
 import {Container} from '@mui/material'
 
 import FullscreenModal from '../../components/FullscreenModal'
-import {ModalsContext} from '../../contexts/modals'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
+import {useModalsContext} from '../../contexts/modals/useModalsContext'
 import {MODAL_NAME} from '../../contexts/modals/constants'
-import {useSnackbar} from '../../hooks/useSnackbar'
 
 // import * as UI from './styles'
 
 const SettingsModal = () => {
   const {closeSnackbar} = useSnackbar()
 
-  const {openedModal, setOpenedModal} = useContext(ModalsContext)
+  const {openedModal, setOpenedModal} = useModalsContext()
 
   const isOpen = openedModal === MODAL_NAME.SETTINGS
 

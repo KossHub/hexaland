@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react'
+import React, {useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {Link} from '@mui/material'
 import {createUserWithEmailAndPassword} from 'firebase/auth'
@@ -7,15 +7,15 @@ import AuthFormWrapper from '../../components/AuthFormWrapper'
 import TextField from '../../components/TextField'
 import Button from '../../components/Button'
 import LoadingButton from '../../components/LoadingButton'
-import {AuthContext} from '../../contexts/auth'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
 import {hasFormEmptyField} from '../../utils/authHelpers'
-import {useSnackbar} from '../../hooks/useSnackbar'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {INIT_FORM_STATE, MIN_PASS_LENGTH} from './constants'
 
 const SignupPage = () => {
   const navigate = useNavigate()
   const {enqueueSnackbar, closeSnackbar} = useSnackbar()
-  const {auth} = useContext(AuthContext)
+  const {auth} = useAuthContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [form, setForm] = useState(INIT_FORM_STATE)
@@ -32,10 +32,7 @@ const SignupPage = () => {
     }))
   }
 
-  const handleSignup = async (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    event.preventDefault()
+  const handleSignup = async () => {
     if (form.password !== form.repeatPassword) {
       enqueueSnackbar('Пароли не совпадают', {
         variant: 'error',
@@ -105,7 +102,7 @@ const SignupPage = () => {
     form.repeatPassword.length < MIN_PASS_LENGTH
 
   return (
-    <AuthFormWrapper title="Регистрация">
+    <AuthFormWrapper title="Регистрация" onSubmit={handleSignup}>
       <TextField
         autoFocus
         required
@@ -119,9 +116,10 @@ const SignupPage = () => {
         required
         label="Пароль"
         name="password"
+        type="password"
+        helperText={`Минимум ${MIN_PASS_LENGTH} символов`}
         onChange={handleChangeField}
         value={form.password}
-        type="password"
         disabled={isLoading}
       />
       <TextField
@@ -135,7 +133,6 @@ const SignupPage = () => {
       />
       <LoadingButton
         type="submit"
-        onClick={handleSignup}
         loading={isLoading}
         disabled={isSignupDisabled}
       >

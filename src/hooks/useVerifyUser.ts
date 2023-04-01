@@ -1,13 +1,13 @@
-import {useContext} from 'react'
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   User as FirebaseUser
 } from 'firebase/auth'
-import {AuthContext} from '../contexts/auth'
+
+import {useAuthContext} from '../contexts/auth/useAuthContext'
 
 export const useVerifyUser = () => {
-  const {currentUser} = useContext(AuthContext)
+  const {currentUser} = useAuthContext()
 
   return async (password: string) => {
     const credentials = EmailAuthProvider.credential(

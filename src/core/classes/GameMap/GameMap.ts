@@ -1,21 +1,71 @@
-import {RectMapCubeCoords} from '../interfaces/map.interfaces'
+import {RectMapCubeCoords} from '../../interfaces/map.interfaces'
 import {
   AxialCoordinates,
   CanvasContextState,
   ShortCubeCoordinates
-} from '../../contexts/canvas/interfaces'
-import {Hex} from './Hex'
+} from '../../../contexts/canvas/interfaces'
+import {Hex} from '../Hex/Hex'
 import {
   GAME_MAP_BORDER_SIZE,
   HEX_TILE_RADIUS,
   TILE_BORDER_COLOR
-} from '../../constants'
-import {GameMapContextState} from '../../contexts/gameMap/interfaces'
+} from '../../../constants'
+import {
+  GameMapContextState,
+  HexTileTemplates
+} from '../../../contexts/gameMap/interfaces'
+import {TILE_COLOR_TYPES} from './constants'
 
 export class GameMap {
+  private _hexTileTemplate: HexTileTemplates = {
+    default: null,
+    hovered: null,
+    selected: null
+  }
+
   protected _mapTuple: RectMapCubeCoords[] = []
 
-  constructor(protected _hexRadius = HEX_TILE_RADIUS) {}
+  constructor(protected _hexRadius = HEX_TILE_RADIUS) {
+    this.fillHexTileTemplates()
+  }
+
+  private fillHexTileTemplates() {
+    Object.keys(TILE_COLOR_TYPES).forEach((key) => {
+      const offscreenCanvas = document.createElement('canvas')
+      const size = this._hexRadius * 2
+      offscreenCanvas.width = size
+      offscreenCanvas.height = size
+      const offscreenCtx = offscreenCanvas.getContext(
+        '2d'
+      ) as CanvasRenderingContext2D
+
+      /** draw hex tile templates */
+      offscreenCtx.beginPath()
+
+      for (let i = 0; i < 6; i++) {
+        const angleDeg = 60 * i - 30
+        const angleRad = (Math.PI / 180) * angleDeg
+        offscreenCtx.lineTo(
+          this._hexRadius * Math.cos(angleRad) + this._hexRadius,
+          this._hexRadius * Math.sin(angleRad) + this._hexRadius
+        )
+      }
+
+      offscreenCtx.closePath()
+      offscreenCtx.strokeStyle = TILE_BORDER_COLOR
+      offscreenCtx.lineWidth = 1
+      offscreenCtx.stroke()
+
+      const color = TILE_COLOR_TYPES[key as keyof HexTileTemplates]
+
+      if (color) {
+        offscreenCtx.fillStyle = color
+        offscreenCtx.fill()
+      }
+
+      this._hexTileTemplate[key as keyof HexTileTemplates] = offscreenCanvas
+    })
+  }
 
   public get hexRadius() {
     return this._hexRadius
@@ -31,34 +81,24 @@ export class GameMap {
       return
     }
 
-    const {x, y} = coordinates
-
     ctx.save()
-    ctx.beginPath()
 
-    for (let i = 0; i < 6; i++) {
-      const angleDeg = 60 * i - 30
-      const angleRad = (Math.PI / 180) * angleDeg
-      ctx.lineTo(
-        x + this._hexRadius * Math.cos(angleRad),
-        y + this._hexRadius * Math.sin(angleRad)
-      )
-    }
-
-    ctx.closePath()
-    ctx.strokeStyle = TILE_BORDER_COLOR
-    ctx.lineWidth = 1
-    ctx.stroke()
-
-    if (isHighlighted) {
-      ctx.fillStyle = '#fff'
-      ctx.fill()
-    }
+    let offscreenCanvasTemplate = this._hexTileTemplate
+      .default as HTMLCanvasElement
 
     if (isSelected) {
-      ctx.fillStyle = '#aaa'
-      ctx.fill()
+      offscreenCanvasTemplate = this._hexTileTemplate
+        .selected as HTMLCanvasElement
+    } else if (isHighlighted) {
+      offscreenCanvasTemplate = this._hexTileTemplate
+        .hovered as HTMLCanvasElement
     }
+
+    ctx.drawImage(
+      offscreenCanvasTemplate,
+      coordinates.x - this._hexRadius,
+      coordinates.y - this._hexRadius
+    )
 
     ctx.restore()
   }

@@ -1,10 +1,10 @@
 import {
   RectMapCubeCoords,
   RectMapEdgesCubeCoords
-} from '../interfaces/map.interfaces'
+} from '../../interfaces/map.interfaces'
 import {GameMap} from './GameMap'
-import {HEX_TILE_RADIUS} from '../../constants'
-import {getHexTileWidth} from '../utils/canvasCalculates.utils'
+import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
+import {HEX_TILE_RADIUS} from '../../../constants'
 
 export class RectMap extends GameMap {
   constructor(

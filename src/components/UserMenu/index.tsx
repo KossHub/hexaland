@@ -1,4 +1,4 @@
-import React, {useContext} from 'react'
+import React from 'react'
 import {Avatar, Divider, Menu, MenuItem, PopoverOrigin} from '@mui/material'
 import {
   Logout as LogoutIcon,
@@ -6,16 +6,16 @@ import {
   CreditScore as CreditScoreIcon
 } from '@mui/icons-material'
 
-import {AuthContext} from '../../contexts/auth'
-import {ModalsContext} from '../../contexts/modals'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
+import {useModalsContext} from '../../contexts/modals/useModalsContext'
 import {MODAL_NAME} from '../../contexts/modals/constants'
 import {UserMenuProps} from './interfaces'
 
 const UserMenu = (props: UserMenuProps) => {
   const {anchorEl, isMobile, onClose} = props
 
-  const {currentUser} = useContext(AuthContext)
-  const {setOpenedModal} = useContext(ModalsContext)
+  const {currentUser} = useAuthContext()
+  const {setOpenedModal} = useModalsContext()
 
   const transformOrigin: PopoverOrigin = isMobile
     ? {horizontal: 'left', vertical: 'bottom'}

@@ -8,9 +8,9 @@ import {
 } from '@mui/material'
 
 import TextField from '../../components/TextField'
-import {useVerifyUser} from '../../hooks/useVerifyUser'
-import {useSnackbar} from '../../hooks/useSnackbar'
 import {VerifyAuthModalProps} from './interfaces'
+import {useVerifyUser} from '../../hooks/useVerifyUser'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {MIN_PASS_LENGTH} from '../../pages/SignupPage/constants'
 
 const VerifyAuthModal: React.FC<VerifyAuthModalProps> = (props) => {
@@ -28,7 +28,8 @@ const VerifyAuthModal: React.FC<VerifyAuthModalProps> = (props) => {
     onClose()
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     setIsLoading(true)
 
     const isVerified = await verifyUser(password)
@@ -56,31 +57,32 @@ const VerifyAuthModal: React.FC<VerifyAuthModalProps> = (props) => {
       maxWidth="xs"
     >
       <DialogTitle>Введите пароль</DialogTitle>
-
-      <DialogContent>
-        <TextField
-          autoFocus
-          required
-          label="Пароль"
-          type="password"
-          variant="standard"
-          onChange={(event) => setPassword(event.target.value)}
-          disabled={isLoading}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={isLoading}>
-          Отменить
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleSubmit}
-          disabled={isLoading || password.length < MIN_PASS_LENGTH}
-        >
-          Отправить
-        </Button>
-      </DialogActions>
+      <form onSubmit={handleSubmit}>
+        <DialogContent sx={{pt: 0}}>
+          <TextField
+            autoFocus
+            required
+            label="Пароль"
+            type="password"
+            variant="standard"
+            onChange={(event) => setPassword(event.target.value)}
+            disabled={isLoading}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} disabled={isLoading}>
+            Отменить
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            type="submit"
+            disabled={isLoading || password.length < MIN_PASS_LENGTH}
+          >
+            Отправить
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   )
 }

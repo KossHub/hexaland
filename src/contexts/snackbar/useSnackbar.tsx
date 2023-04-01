@@ -1,10 +1,14 @@
 import React from 'react'
 import CloseIcon from '@mui/icons-material/Close'
 import {IconButton} from '@mui/material'
-import {SnackbarKey, SnackbarMessage, useSnackbar as notistackUseSnackbar} from 'notistack'
+import {
+  SnackbarKey,
+  SnackbarMessage,
+  useSnackbar as notistackUseSnackbar
+} from 'notistack'
 
-import {NOTIFICATION_POSITION} from '../contexts/snackbar/constants'
-import {EnqueueSnackbarOptions} from '../interfaces'
+import {EnqueueSnackbarOptions} from '../../interfaces'
+import {NOTIFICATION_POSITION} from './constants'
 
 export const useSnackbar = () => {
   const snackbar = notistackUseSnackbar()

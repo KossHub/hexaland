@@ -33,7 +33,6 @@ const App = () => {
           },
           body: {
             height: '100%',
-            overscrollBehavior: 'none' // disable refresh page behavior on mobile
           },
           ['#root']: {
             height: '100%'

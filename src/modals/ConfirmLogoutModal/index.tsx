@@ -1,19 +1,18 @@
-import React, {useContext} from 'react'
+import React from 'react'
 import {signOut} from 'firebase/auth'
 import {useNavigate} from 'react-router-dom'
 import {Dialog, DialogTitle, DialogActions, Button} from '@mui/material'
 
-import {ModalsContext} from '../../contexts/modals'
+import {useModalsContext} from '../../contexts/modals/useModalsContext'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {MODAL_NAME} from '../../contexts/modals/constants'
-import {AuthContext} from '../../contexts/auth'
-import {useSnackbar} from '../../hooks/useSnackbar'
 
 const ConfirmLogoutModal = () => {
   const navigate = useNavigate()
   const {closeSnackbar} = useSnackbar()
-  const {auth} = useContext(AuthContext)
-
-  const {openedModal, setOpenedModal} = useContext(ModalsContext)
+  const {auth} = useAuthContext()
+  const {openedModal, setOpenedModal} = useModalsContext()
 
   const isOpen = openedModal === MODAL_NAME.CONFIRM_LOGOUT
 

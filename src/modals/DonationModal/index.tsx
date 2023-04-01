@@ -1,12 +1,12 @@
-import React, {useContext} from 'react'
+import React from 'react'
 import {Dialog, DialogContent, Typography} from '@mui/material'
 
 import {QRDonationIcon} from '../../assets/QRDonationIcon'
-import {ModalsContext} from '../../contexts/modals'
+import {useModalsContext} from '../../contexts/modals/useModalsContext'
 import {MODAL_NAME} from '../../contexts/modals/constants'
 
 const DonationModal = () => {
-  const {openedModal, setOpenedModal} = useContext(ModalsContext)
+  const {openedModal, setOpenedModal} = useModalsContext()
 
   return (
     <Dialog

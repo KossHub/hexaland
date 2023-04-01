@@ -6,21 +6,18 @@ import {Link} from '@mui/material'
 import AuthFormWrapper from '../../components/AuthFormWrapper'
 import TextField from '../../components/TextField'
 import LoadingButton from '../../components/LoadingButton'
-import {AuthContext} from '../../contexts/auth'
-import {useSnackbar} from '../../hooks/useSnackbar'
+import {useAuthContext} from '../../contexts/auth/useAuthContext'
+import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 
 const ForgotPassword = () => {
   const navigate = useNavigate()
   const {enqueueSnackbar} = useSnackbar()
-  const {auth} = useContext(AuthContext)
+  const {auth} = useAuthContext()
 
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
 
-  const handleResetPassword = async (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    event.preventDefault()
+  const handleResetPassword = async () => {
     setIsLoading(true)
     sendPasswordResetEmail(auth, email, {
       url: 'https://hexaland-e91a6.web.app/login'
@@ -38,11 +35,14 @@ const ForgotPassword = () => {
   }
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value)
+    setEmail(event.target.value.trim())
   }
 
   return (
-    <AuthFormWrapper title="Восстановление пароля">
+    <AuthFormWrapper
+      title="Восстановление пароля"
+      onSubmit={handleResetPassword}
+    >
       <TextField
         autoFocus
         required
@@ -54,7 +54,6 @@ const ForgotPassword = () => {
       />
       <LoadingButton
         type="submit"
-        onClick={handleResetPassword}
         loading={isLoading}
         disabled={isLoading || !email.trim()}
       >

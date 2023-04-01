@@ -1,12 +1,5 @@
 import React, {useState} from 'react'
-import {
-  AppBar,
-  IconButton,
-  Slide,
-  Toolbar,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import {AppBar, IconButton, Slide, Toolbar, Typography} from '@mui/material'
 import {
   AccountCircle as AccountCircleIcon,
   ArrowUpward as ArrowUpwardIcon,
@@ -14,6 +7,7 @@ import {
 } from '@mui/icons-material'
 
 import UserMenu from '../UserMenu'
+import Tooltip from '../../components/Tooltip'
 import {TopBarProps} from './interfaces'
 import * as UI from './styles'
 
@@ -43,12 +37,7 @@ const TopBar: React.FC<TopBarProps> = (props) => {
             <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
               HEXALand
             </Typography>
-            <Tooltip
-              arrow
-              title="Меню пользователя"
-              enterNextDelay={500}
-              placement="bottom-start"
-            >
+            <Tooltip title="Меню пользователя" placement="bottom-start">
               <IconButton
                 size="large"
                 aria-controls="user-menu-appbar"

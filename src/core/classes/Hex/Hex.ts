@@ -2,7 +2,7 @@ import {
   AxialCoordinates,
   CubeCoordinates,
   ShortCubeCoordinates
-} from '../../contexts/canvas/interfaces'
+} from '../../../contexts/canvas/interfaces'
 
 export class Hex {
   constructor(private _q: number, private _r: number) {}
