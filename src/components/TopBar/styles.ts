@@ -12,6 +12,7 @@ export const ShowMenuButton = styled(IconButton)(({theme}) => ({
   top: theme.spacing(1.5),
   left: theme.spacing(3),
   zIndex: 1,
+  color: theme.palette.common.white,
 
   [theme.breakpoints.down('md')]: {
     display: 'none'

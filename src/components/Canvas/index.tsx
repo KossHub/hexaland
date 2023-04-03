@@ -21,7 +21,8 @@ const Canvas = () => {
 
   const canvasRef = useRef<null | HTMLCanvasElement>(null)
 
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [isCanvasInitialized, setIsCanvasInitialized] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   /** Init canvas state */
   useEffect(() => {
@@ -31,8 +32,6 @@ const Canvas = () => {
 
     if (canvas.ref === null) {
       canvas.ref = canvasRef.current
-      // @ts-ignore
-      window.C = canvas.ref
       canvas.ref.width = canvas.ref.offsetWidth
       canvas.ref.height = canvas.ref.offsetHeight
     }
@@ -43,30 +42,42 @@ const Canvas = () => {
     }
 
     if (!canvas.ctx) {
-      canvas.ctx = canvas.ref.getContext('2d')
+      canvas.ctx = canvas.ref.getContext('2d', {
+        alpha: false
+      })
 
-      setIsInitialized(true)
+      setIsCanvasInitialized(true)
+      setIsLoading(true)
     }
   }, [])
 
   useEffect(() => {
-    if (!isInitialized || !canvas) {
+    if (!isCanvasInitialized) {
       return
     }
 
-    gameMapState!.gameMap = new RectMap({
-      top: 0,
-      right: 100,
-      bottom: 100,
-      left: 0
-    })
+    gameMapState!.gameMap = new RectMap(
+      {
+        top: 0,
+        bottom: 10,
+        left: 0,
+        right: 10
+      },
+      () => setIsLoading(false)
+    )
+  }, [isCanvasInitialized])
+
+  useEffect(() => {
+    if (!isCanvasInitialized || isLoading) {
+      return
+    }
 
     addCanvasListeners()
 
     return () => {
       removeCanvasListeners()
     }
-  }, [isInitialized])
+  }, [isCanvasInitialized, isLoading])
 
   return (
     <UI.Wrapper>

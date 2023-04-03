@@ -7,7 +7,8 @@ import {
   LONG_TOUCH_DURATION_MS,
   ACCEPTABLE_CLICK_OFFSET_PX,
   ZERO_AXIAL_COORDS,
-  ZERO_SHORT_CUBE_COORDS
+  ZERO_SHORT_CUBE_COORDS,
+  CANVAS_FPS
 } from '../constants'
 import {
   CanvasContextState,
@@ -16,6 +17,7 @@ import {
   ShortCubeCoords
 } from '../contexts/canvas/interfaces'
 import {
+  getHexTileWidth,
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
@@ -29,6 +31,7 @@ export const useCanvasListeners = (
   const mousePrevPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const isMouseButtonPressed = useRef(false)
   const touchTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
+  const drawTimeoutId = useRef<null | ReturnType<typeof setTimeout>>(null)
   const initTouch = useRef<null | Touch>(null)
   const prevTouches = useRef<Touch[]>([])
   const prevMidpoint = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
@@ -41,7 +44,12 @@ export const useCanvasListeners = (
         clearTimeout(touchTimeoutId.current)
       }
 
+      if (drawTimeoutId.current) {
+        clearTimeout(drawTimeoutId.current)
+      }
+
       initTouch.current = null
+      drawTimeoutId.current = null
     }
   }, [])
 
@@ -66,8 +74,7 @@ export const useCanvasListeners = (
     if (canvas.ctx && gameMapState.gameMap) {
       clearMap()
       gameMapState.gameMap.drawHexTiles(
-        canvas.ctx,
-        canvas.scale,
+        canvas,
         centerHexCoords.current,
         gameMapState.hoveredHex,
         gameMapState.selectedHex
@@ -75,7 +82,12 @@ export const useCanvasListeners = (
     }
 
     if (canvas.ref) {
-      requestAnimationFrame(drawCanvas)
+      setTimeout(() => {
+        requestAnimationFrame(drawCanvas)
+      }, 1000 / CANVAS_FPS)
+    } else if (drawTimeoutId.current) {
+      clearTimeout(drawTimeoutId.current)
+      drawTimeoutId.current = null
     }
   }
 
@@ -103,14 +115,13 @@ export const useCanvasListeners = (
       return null
     }
 
-    const {x, y} = mousePosition
     const shiftedX =
-      x / canvas.scale - // mouse origin
+      mousePosition.x / canvas.scale - // mouse origin
       canvas.originOffset.x / canvas.scale - // offset
       (Math.sqrt(3) * gameMapState.gameMap.hexRadius) / 2 - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
     const shiftedY =
-      y / canvas.scale - // mouse origin
+      mousePosition.y / canvas.scale - // mouse origin
       canvas.originOffset.y / canvas.scale - // offset
       gameMapState.gameMap.hexRadius - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
@@ -314,11 +325,12 @@ export const useCanvasListeners = (
         x: midpoint.x - prevMidpoint.current.x,
         y: midpoint.y - prevMidpoint.current.y
       })
-      updateCenterHex()
 
       prevMidpoint.current = midpoint
       prevTouchesDistance.current = distance
     }
+
+    updateCenterHex()
   }
 
   const onTouchEnd = () => {
@@ -367,6 +379,7 @@ export const useCanvasListeners = (
       return
     }
 
+    updateCenterHex()
     requestAnimationFrame(drawCanvas)
 
     canvas.ref.addEventListener('mousemove', mouseEvent, {passive: true})
@@ -384,6 +397,8 @@ export const useCanvasListeners = (
     if (!canvas.ref) {
       return
     }
+
+    clearMap()
 
     canvas.ref.removeEventListener('mousemove', mouseEvent)
     canvas.ref.removeEventListener('mousedown', mouseEvent)

@@ -1,20 +1,18 @@
-import {RectMapCubeCoords} from '../../interfaces/map.interfaces'
+import {RectMapScheme} from '../../interfaces/map.interfaces'
 import {
   AxialCoords,
   CanvasContextState,
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
-import {
-  GAME_MAP_BORDER_SIZE,
-  HEX_TILE_RADIUS,
-  TILE_BORDER_COLOR
-} from '../../../constants'
+import {HEX_TILE_RADIUS, TILE_BORDER_COLOR} from '../../../constants'
 import {
   GameMapContextState,
   HexTileTemplates
 } from '../../../contexts/gameMap/interfaces'
-import {TILE_COLOR_TYPES} from './constants'
+import {CUBE_DIRECTION_VECTORS, TILE_COLOR_TYPES, Vector} from './constants'
+import {isEqual} from 'lodash'
+import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
 export class GameMap {
   private _hexTileTemplate: HexTileTemplates = {
@@ -23,10 +21,14 @@ export class GameMap {
     selected: null
   }
 
-  protected _mapTuple: RectMapCubeCoords[] = []
+  protected _mapScheme: RectMapScheme = {}
 
-  constructor(protected _hexRadius = HEX_TILE_RADIUS) {
+  constructor(protected _hexRadius: number) {
     this.fillHexTileTemplates()
+  }
+
+  protected doesHexExist(coords: ShortCubeCoords): boolean {
+    throw new Error('Method not implemented.')
   }
 
   private fillHexTileTemplates() {
@@ -103,40 +105,114 @@ export class GameMap {
     ctx.restore()
   }
 
-  // protected get
+  /** cube_add & cube_scale */
+  protected getShiftedHexTile(
+    origin: ShortCubeCoords,
+    vector: Vector,
+    distance = 1
+  ): ShortCubeCoords {
+    if (distance < 1) {
+      throw new Error(
+        `getShiftedHexTile distance cannot be less than 1. Passed ${distance}`
+      )
+    }
 
-  /** Calculates is hex center point on screen */
-  // public isHexOnScreen(coords: ShortCubeCoords) {
-  //
-  // }
+    return {
+      q: origin.q + vector.q * distance,
+      r: origin.r + vector.r * distance
+    }
+  }
 
-  public doesHexExist(coords: ShortCubeCoords) {
-    return this._mapTuple.some(([q, r]) => q === coords.q && r === coords.r)
+  /** cube_ring */
+  protected getRingHexTiles(
+    center: ShortCubeCoords,
+    radius: number
+  ): ShortCubeCoords[] {
+    /**
+     *  steps away from the center,
+     *  then follow the rotated vectors in a path around the ring
+     * */
+    if (radius === 0) {
+      return []
+    }
+
+    const result: ShortCubeCoords[] = []
+
+    let anchorHex = this.getShiftedHexTile(
+      center,
+      CUBE_DIRECTION_VECTORS.BOTTOM_LEFT,
+      radius
+    )
+
+    Object.values(CUBE_DIRECTION_VECTORS).forEach((vector) => {
+      for (let i = 0; i < radius; i++) {
+        result.push(anchorHex)
+        anchorHex = this.getShiftedHexTile(anchorHex, vector)
+      }
+    })
+
+    return result
+  }
+
+  /** cube_spiral */
+  protected getSpiralHexTiles(
+    center: ShortCubeCoords,
+    maxRadius: number
+  ): ShortCubeCoords[] {
+    const result = [center]
+
+    for (let radius = 1; radius <= maxRadius; radius++) {
+      result.push(...this.getRingHexTiles(center, radius))
+    }
+
+    return result
   }
 
   public drawHexTiles(
-    ctx: CanvasContextState['ctx'],
-    scale = 1,
-    centerHexCoords?: ShortCubeCoords,
-    // canvasWidth, Height
+    canvas: CanvasContextState,
+    centerHexCoords: ShortCubeCoords,
     hoveredHex?: GameMapContextState['hoveredHex'],
     selectedHex?: GameMapContextState['selectedHex']
   ) {
-    if (!ctx) {
+    if (!canvas || !canvas.ref) {
       return
     }
 
-    this._mapTuple.forEach(([q, r]) => {
-      const hexTile = new Hex(q, r)
-      const isSelected = q === selectedHex?.q && r === selectedHex?.r
-      const isHighlighted =
-        !isSelected && q === hoveredHex?.q && r === hoveredHex?.r
-      const shiftedCoords = hexTile.getAxialShiftedCoords(
-        this._hexRadius,
-        scale
-      )
+    const canvasWidth = canvas.ref.width
+    const canvasHeight = canvas.ref.height
+    const canvasDiagonal = Math.ceil(
+      Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2))
+    )
+    const spiralRadiusInTiles =
+      Math.ceil(
+        ((canvasDiagonal / getHexTileHeight(this._hexRadius * canvas.scale)) *
+          4) /
+          3 /
+          2
+      ) + 1
+    /**
+     * move in a spiral from the center hex tile
+     * and collect them until the entire circle is offscreen
+     * */
+    const visibleTiles: ShortCubeCoords[] = this.getSpiralHexTiles(
+      centerHexCoords,
+      spiralRadiusInTiles
+    )
 
-      this.drawHexTile(ctx, shiftedCoords, isHighlighted, isSelected)
+    const tilesToDraw = visibleTiles
+      .filter((coords) => this.doesHexExist(coords))
+      .map((coords) => {
+        const hexTile = new Hex(coords.q, coords.r)
+
+        return {
+          coords: hexTile.getAxialShiftedCoords(this._hexRadius, canvas.scale),
+          isHighlighted: isEqual(coords, hoveredHex),
+          isSelected: isEqual(coords, selectedHex)
+        }
+      })
+
+    tilesToDraw.forEach(({coords, isHighlighted, isSelected}) => {
+      this.drawHexTile(canvas.ctx, coords, isHighlighted, isSelected)
     })
   }
 

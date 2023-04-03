@@ -1,12 +1,6 @@
-export interface RectMapSize {
-  width: number
-  height: number
+export interface RectMapScheme {
+  [key: string]: number[] // {r: [q,  q, ...]}
 }
-
-export type RectMapCubeCoords = [
-  number, // r
-  number // q
-]
 
 export interface RectMapEdgesCubeCoords {
   top: number

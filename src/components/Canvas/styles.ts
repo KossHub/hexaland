@@ -8,7 +8,8 @@ export const Wrapper = styled('div')(({theme}) => ({theme}) => ({
 
   '& > canvas': {
     height: '100%',
-    width: '100%'
+    width: '100%',
+    imageRendering: 'pixelated',
   },
 
   [theme.breakpoints.down('md')]: {

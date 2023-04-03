@@ -46,7 +46,6 @@ const UserMenu = (props: UserMenuProps) => {
 
   return (
     <Menu
-      // keepMounted FIXME: remove ?
       id="user-menu-appbar"
       anchorEl={anchorEl}
       transformOrigin={transformOrigin}
