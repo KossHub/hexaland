@@ -6,10 +6,3 @@ export interface GameMapContextState {
   hoveredHex: null | ShortCubeCoords
   selectedHex: null | ShortCubeCoords
 }
-
-export interface HexTileTemplates {
-  default: null | HTMLCanvasElement
-  hovered: null | HTMLCanvasElement
-  selected: null | HTMLCanvasElement
-}
- // TODO: Add NotNullable allContextStates

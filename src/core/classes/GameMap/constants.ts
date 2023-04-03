@@ -1,4 +1,4 @@
-import {HexTileTemplates} from '../../../contexts/gameMap/interfaces'
+import {HexTileTemplates} from '../../interfaces/hex.interfaces'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 
 export const TILE_COLOR_TYPES: Record<keyof HexTileTemplates, string> = {

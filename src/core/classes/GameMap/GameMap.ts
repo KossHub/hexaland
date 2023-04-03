@@ -5,11 +5,11 @@ import {
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
-import {HEX_TILE_RADIUS, TILE_BORDER_COLOR} from '../../../constants'
+import {TILE_BORDER_COLOR} from '../../../constants'
 import {
-  GameMapContextState,
-  HexTileTemplates
+  GameMapContextState
 } from '../../../contexts/gameMap/interfaces'
+import {HexTileTemplates} from '../../interfaces/hex.interfaces'
 import {CUBE_DIRECTION_VECTORS, TILE_COLOR_TYPES, Vector} from './constants'
 import {isEqual} from 'lodash'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
