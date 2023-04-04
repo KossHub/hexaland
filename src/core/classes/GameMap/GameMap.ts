@@ -5,12 +5,14 @@ import {
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
-import {TILE_BORDER_COLOR} from '../../../constants'
-import {
-  GameMapContextState
-} from '../../../contexts/gameMap/interfaces'
+import {GameMapContextState} from '../../../contexts/gameMap/interfaces'
 import {HexTileTemplates} from '../../interfaces/hex.interfaces'
-import {CUBE_DIRECTION_VECTORS, TILE_COLOR_TYPES, Vector} from './constants'
+import {
+  CUBE_DIRECTION_VECTORS,
+  TILE_BORDER_COLOR,
+  TILE_COLOR_TYPES,
+  Vector
+} from './constants'
 import {isEqual} from 'lodash'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
@@ -33,39 +35,39 @@ export class GameMap {
 
   private fillHexTileTemplates() {
     Object.keys(TILE_COLOR_TYPES).forEach((key) => {
-      const offscreenCanvas = document.createElement('canvas')
+      const templateCanvas = document.createElement('canvas')
       const size = this._hexRadius * 2
-      offscreenCanvas.width = size
-      offscreenCanvas.height = size
-      const offscreenCtx = offscreenCanvas.getContext(
+      templateCanvas.width = size
+      templateCanvas.height = size
+      const templateCtx = templateCanvas.getContext(
         '2d'
       ) as CanvasRenderingContext2D
 
       /** draw hex tile templates */
-      offscreenCtx.beginPath()
+      templateCtx.beginPath()
 
       for (let i = 0; i < 6; i++) {
         const angleDeg = 60 * i - 30
         const angleRad = (Math.PI / 180) * angleDeg
-        offscreenCtx.lineTo(
+        templateCtx.lineTo(
           this._hexRadius * Math.cos(angleRad) + this._hexRadius,
           this._hexRadius * Math.sin(angleRad) + this._hexRadius
         )
       }
 
-      offscreenCtx.closePath()
-      offscreenCtx.strokeStyle = TILE_BORDER_COLOR
-      offscreenCtx.lineWidth = 1
-      offscreenCtx.stroke()
-
       const color = TILE_COLOR_TYPES[key as keyof HexTileTemplates]
 
-      if (color) {
-        offscreenCtx.fillStyle = color
-        offscreenCtx.fill()
-      }
+      templateCtx.closePath()
+      templateCtx.strokeStyle = color || TILE_BORDER_COLOR
+      templateCtx.lineWidth = 1
+      templateCtx.stroke()
 
-      this._hexTileTemplate[key as keyof HexTileTemplates] = offscreenCanvas
+      // if (color) {
+      //   templateCtx.fillStyle = color
+      //   templateCtx.fill()
+      // }
+
+      this._hexTileTemplate[key as keyof HexTileTemplates] = templateCanvas
     })
   }
 
@@ -74,7 +76,7 @@ export class GameMap {
   }
 
   private drawHexTile(
-    ctx: CanvasContextState['ctx'],
+    ctx: CanvasRenderingContext2D,
     coords: AxialCoords,
     isHighlighted?: boolean,
     isSelected?: boolean
@@ -174,12 +176,12 @@ export class GameMap {
     hoveredHex?: GameMapContextState['hoveredHex'],
     selectedHex?: GameMapContextState['selectedHex']
   ) {
-    if (!canvas || !canvas.ref) {
+    if (!canvas || !canvas.wrapperRef) {
       return
     }
 
-    const canvasWidth = canvas.ref.width
-    const canvasHeight = canvas.ref.height
+    const canvasWidth = canvas.wrapperRef.clientWidth
+    const canvasHeight = canvas.wrapperRef.clientHeight
     const canvasDiagonal = Math.ceil(
       Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2))
     )
@@ -199,8 +201,11 @@ export class GameMap {
       spiralRadiusInTiles
     )
 
-    const tilesToDraw = visibleTiles
-      .filter((coords) => this.doesHexExist(coords))
+    const tilesToDraw = visibleTiles.filter((coords) =>
+      this.doesHexExist(coords)
+    )
+
+    tilesToDraw
       .map((coords) => {
         const hexTile = new Hex(coords.q, coords.r)
 
@@ -210,10 +215,29 @@ export class GameMap {
           isSelected: isEqual(coords, selectedHex)
         }
       })
-
-    tilesToDraw.forEach(({coords, isHighlighted, isSelected}) => {
-      this.drawHexTile(canvas.ctx, coords, isHighlighted, isSelected)
-    })
+      .sort((a, b) => {
+        if (a.isSelected && !b.isSelected) {
+          return 1
+        }
+        if (!a.isSelected && b.isSelected) {
+          return -1
+        }
+        if (a.isHighlighted && !b.isHighlighted) {
+          return 1
+        }
+        if (!a.isHighlighted && b.isHighlighted) {
+          return -1
+        }
+        return 0
+      })
+      .forEach(({coords, isHighlighted, isSelected}) => {
+        this.drawHexTile(
+          canvas.contexts.grid as CanvasRenderingContext2D,
+          coords,
+          isHighlighted,
+          isSelected
+        )
+      })
   }
 
   public getHexCoords(pixelCoords: AxialCoords): ShortCubeCoords {

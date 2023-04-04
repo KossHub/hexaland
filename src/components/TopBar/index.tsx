@@ -57,7 +57,10 @@ const TopBar: React.FC<TopBarProps> = (props) => {
       </UI.NavbarWrapper>
 
       <Slide appear={false} direction="down" in={!isNavbarShown}>
-        <UI.ShowMenuButton onClick={() => setIsNavbarShown(true)}>
+        <UI.ShowMenuButton
+          color="primary"
+          onClick={() => setIsNavbarShown(true)}
+        >
           <DragHandleRoundedIcon aria-label="menu" />
         </UI.ShowMenuButton>
       </Slide>

@@ -1,10 +1,12 @@
 import {HexTileTemplates} from '../../interfaces/hex.interfaces'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 
+export const TILE_BORDER_COLOR = '#ddd'
+
 export const TILE_COLOR_TYPES: Record<keyof HexTileTemplates, string> = {
   default: '',
-  hovered: '#eee',
-  selected: '#204030'
+  hovered: '#aaa',
+  selected: '#0f403f'
 }
 
 export const CUBE_DIRECTION_VECTORS: Record<string, ShortCubeCoords> = {

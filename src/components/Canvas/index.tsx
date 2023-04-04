@@ -1,6 +1,10 @@
 import React, {useRef, useState, useEffect} from 'react'
 
-import {CanvasContextState} from '../../contexts/canvas/interfaces'
+import {
+  CanvasContextState,
+  CanvasRefs,
+  CanvasContexts
+} from '../../contexts/canvas/interfaces'
 import {GameMapContextState} from '../../contexts/gameMap/interfaces'
 import {RectMap} from '../../core/classes/GameMap/RectMap'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
@@ -19,35 +23,58 @@ const Canvas = () => {
     gameMapState as GameMapContextState
   )
 
-  const canvasRef = useRef<null | HTMLCanvasElement>(null)
+  const wrapperRef = useRef<null | HTMLDivElement>(null)
+  const canvasGridRef = useRef<null | HTMLCanvasElement>(null)
+  const canvasLandscapeRef = useRef<null | HTMLCanvasElement>(null)
 
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   /** Init canvas state */
   useEffect(() => {
-    if (!canvasRef.current || !canvas) {
+    if (
+      !canvas ||
+      !canvasGridRef.current ||
+      !canvasLandscapeRef.current ||
+      !wrapperRef.current
+    ) {
       return
     }
 
-    if (canvas.ref === null) {
-      canvas.ref = canvasRef.current
-      canvas.ref.width = canvas.ref.offsetWidth
-      canvas.ref.height = canvas.ref.offsetHeight
+    if (!canvas.wrapperRef) {
+      canvas.wrapperRef = wrapperRef.current
     }
 
-    if (!canvas.ref?.getContext) {
+    const width = canvas.wrapperRef?.clientWidth || 0
+    const height = canvas.wrapperRef?.clientHeight || 0
+
+    if (Object.values(canvas.refs).some((ref) => !ref)) {
+      canvas.refs = {
+        grid: canvasGridRef.current,
+        landscape: canvasLandscapeRef.current
+      }
+
+      Object.keys(canvas.refs).forEach((key) => {
+        canvas.refs[key as keyof CanvasRefs]!.width = width
+        canvas.refs[key as keyof CanvasRefs]!.height = height
+      })
+    }
+
+    if (!canvas.refs.grid?.getContext) {
       enqueueSnackbar('Браузер не поддерживается', {variant: 'error'})
       return
     }
 
-    if (!canvas.ctx) {
-      canvas.ctx = canvas.ref.getContext('2d', {
-        alpha: false
+    if (Object.values(canvas.contexts).some((ctx) => !ctx)) {
+      Object.keys(canvas.contexts).forEach((key) => {
+        canvas.contexts[key as keyof CanvasContexts] = canvas.refs[
+          key as keyof CanvasRefs
+        ]!.getContext('2d', {
+          alpha: key !== 'landscape' // only the bottom layer isn't transparent
+        })
       })
 
       setIsCanvasInitialized(true)
-      setIsLoading(true)
     }
   }, [])
 
@@ -59,9 +86,9 @@ const Canvas = () => {
     gameMapState!.gameMap = new RectMap(
       {
         top: 0,
-        bottom: 10,
+        bottom: 399,
         left: 0,
-        right: 10
+        right: 599
       },
       () => setIsLoading(false)
     )
@@ -80,8 +107,9 @@ const Canvas = () => {
   }, [isCanvasInitialized, isLoading])
 
   return (
-    <UI.Wrapper>
-      <canvas ref={canvasRef} />
+    <UI.Wrapper ref={wrapperRef}>
+      <canvas ref={canvasGridRef} id="canvasGrid" />
+      <canvas ref={canvasLandscapeRef} id="canvasLandscape" />
     </UI.Wrapper>
   )
 }

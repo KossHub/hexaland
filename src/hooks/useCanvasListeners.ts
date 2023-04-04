@@ -14,10 +14,11 @@ import {
   CanvasContextState,
   MapEdgesInPixels,
   AxialCoords,
-  ShortCubeCoords
+  ShortCubeCoords,
+  CanvasContexts,
+  CanvasRefs
 } from '../contexts/canvas/interfaces'
 import {
-  getHexTileWidth,
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
@@ -54,34 +55,50 @@ export const useCanvasListeners = (
   }, [])
 
   const clearMap = () => {
-    if (!canvas.ref || !canvas.ctx) {
+    if (
+      !canvas.wrapperRef ||
+      Object.values(canvas.contexts).some((ctx) => !ctx)
+    ) {
       return
     }
 
-    canvas.ctx.setTransform(1, 0, 0, 1, 0, 0)
-    canvas.ctx.clearRect(0, 0, canvas.ref.width, canvas.ref.height)
-    canvas.ctx.setTransform(
-      canvas.scale,
-      0,
-      0,
-      canvas.scale,
-      canvas.originOffset.x,
-      canvas.originOffset.y
-    )
+    const width = canvas.wrapperRef?.clientWidth || 0
+    const height = canvas.wrapperRef?.clientHeight || 0
+
+    Object.keys(canvas.contexts).forEach((key) => {
+      const ctx = canvas.contexts[
+        key as keyof CanvasContexts
+      ] as CanvasRenderingContext2D
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, width, height)
+
+      if (key === 'landscape') {
+        ctx.fillStyle = '#FAFCFF'
+        ctx.fillRect(0, 0, width, height)
+      }
+
+      ctx.setTransform(
+        canvas.scale,
+        0,
+        0,
+        canvas.scale,
+        canvas.originOffset.x,
+        canvas.originOffset.y
+      )
+    })
   }
 
   const drawCanvas = () => {
-    if (canvas.ctx && gameMapState.gameMap) {
+    if (canvas.wrapperRef && gameMapState.gameMap) {
       clearMap()
       gameMapState.gameMap.drawHexTiles(
+        // TODO: Rename and add canvases
         canvas,
         centerHexCoords.current,
         gameMapState.hoveredHex,
         gameMapState.selectedHex
       )
-    }
-
-    if (canvas.ref) {
       setTimeout(() => {
         requestAnimationFrame(drawCanvas)
       }, 1000 / CANVAS_FPS)
@@ -133,8 +150,8 @@ export const useCanvasListeners = (
   }
 
   const updateCenterHex = () => {
-    const canvasWidth = canvas.ref?.width || 0
-    const canvasHeight = canvas.ref?.height || 0
+    const canvasWidth = canvas.wrapperRef?.clientWidth || 0
+    const canvasHeight = canvas.wrapperRef?.clientHeight || 0
     centerHexCoords.current =
       getHexCubeCoords({
         x: canvasWidth / 2,
@@ -144,7 +161,8 @@ export const useCanvasListeners = (
 
   const moveOffset = (offsetAmount: AxialCoords) => {
     const {left, right, top, bottom} = getMapEdgesInPixels()
-    const windowWidth = canvas.ref?.width || 0
+
+    const windowWidth = canvas.wrapperRef?.clientWidth || 0
     const newOffsetX = left + offsetAmount.x
     const isLeftOffsetIncreasing = newOffsetX > left
     const isLeftOffsetDecreasing = newOffsetX < left
@@ -158,7 +176,7 @@ export const useCanvasListeners = (
       canvas.originOffset.x = newOffsetX
     }
 
-    const windowHeight = canvas.ref?.height || 0
+    const windowHeight = canvas.wrapperRef?.clientHeight || 0
     const newOffsetY = top + offsetAmount.y
     const isTopOffsetIncreasing = newOffsetY > top
     const isTopOffsetDecreasing = newOffsetY < top
@@ -218,13 +236,20 @@ export const useCanvasListeners = (
   }
 
   const onResize = () => {
-    if (!canvas.ref) {
+    if (!canvas.wrapperRef) {
       return
     }
 
-    const rect = canvas.ref.getBoundingClientRect()
-    canvas.ref.width = Math.round(rect.width)
-    canvas.ref.height = Math.round(rect.height)
+    const rect = canvas.wrapperRef.getBoundingClientRect()
+
+    Object.keys(canvas.refs).forEach((key) => {
+      const canvasRef = canvas.refs[
+        key as keyof CanvasRefs
+      ] as HTMLCanvasElement
+      canvasRef.width = Math.round(rect.width)
+      canvasRef.height = Math.round(rect.height)
+    })
+
     setHoveredHex(null)
     updateCenterHex()
   }
@@ -375,39 +400,39 @@ export const useCanvasListeners = (
   }
 
   const addCanvasListeners = () => {
-    if (!canvas.ref) {
+    if (!canvas.wrapperRef) {
       return
     }
 
     updateCenterHex()
     requestAnimationFrame(drawCanvas)
 
-    canvas.ref.addEventListener('mousemove', mouseEvent, {passive: true})
-    canvas.ref.addEventListener('mousedown', mouseEvent, {passive: true})
-    canvas.ref.addEventListener('mouseup', mouseEvent, {passive: true})
-    canvas.ref.addEventListener('mouseout', mouseEvent, {passive: true})
-    canvas.ref.addEventListener('touchstart', onTouchStart)
-    canvas.ref.addEventListener('touchmove', onTouchMove)
-    canvas.ref.addEventListener('touchend', onTouchEnd)
-    canvas.ref.addEventListener('wheel', mouseWheelEvent)
+    canvas.wrapperRef.addEventListener('mousemove', mouseEvent, {passive: true})
+    canvas.wrapperRef.addEventListener('mousedown', mouseEvent, {passive: true})
+    canvas.wrapperRef.addEventListener('mouseup', mouseEvent, {passive: true})
+    canvas.wrapperRef.addEventListener('mouseout', mouseEvent, {passive: true})
+    canvas.wrapperRef.addEventListener('touchstart', onTouchStart)
+    canvas.wrapperRef.addEventListener('touchmove', onTouchMove)
+    canvas.wrapperRef.addEventListener('touchend', onTouchEnd)
+    canvas.wrapperRef.addEventListener('wheel', mouseWheelEvent)
     window.addEventListener('resize', onResize, {passive: true})
   }
 
   const removeCanvasListeners = () => {
-    if (!canvas.ref) {
+    if (!canvas.wrapperRef) {
       return
     }
 
     clearMap()
 
-    canvas.ref.removeEventListener('mousemove', mouseEvent)
-    canvas.ref.removeEventListener('mousedown', mouseEvent)
-    canvas.ref.removeEventListener('mouseup', mouseEvent)
-    canvas.ref.removeEventListener('mouseout', mouseEvent)
-    canvas.ref.removeEventListener('touchstart', onTouchStart)
-    canvas.ref.removeEventListener('touchmove', onTouchMove)
-    canvas.ref.removeEventListener('touchend', onTouchEnd)
-    canvas.ref.removeEventListener('wheel', mouseWheelEvent)
+    canvas.wrapperRef.removeEventListener('mousemove', mouseEvent)
+    canvas.wrapperRef.removeEventListener('mousedown', mouseEvent)
+    canvas.wrapperRef.removeEventListener('mouseup', mouseEvent)
+    canvas.wrapperRef.removeEventListener('mouseout', mouseEvent)
+    canvas.wrapperRef.removeEventListener('touchstart', onTouchStart)
+    canvas.wrapperRef.removeEventListener('touchmove', onTouchMove)
+    canvas.wrapperRef.removeEventListener('touchend', onTouchEnd)
+    canvas.wrapperRef.removeEventListener('wheel', mouseWheelEvent)
     window.removeEventListener('resize', onResize)
   }
 

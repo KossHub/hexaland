@@ -8,15 +8,23 @@ export const CanvasContext = createContext<null | CanvasContextState>(null)
 const CanvasProvider: React.FC<PropsWithChildren> = (props) => {
   const {children} = props
 
-  const canvasRef = useRef<CanvasContextState['ref']>(null)
-  const ctxRef = useRef<CanvasContextState['ctx']>(null)
+  const wrapperRef = useRef<CanvasContextState['wrapperRef']>(null)
+  const canvasesRef = useRef<CanvasContextState['refs']>({
+    grid: null,
+    landscape: null
+  })
+  const contextsRef = useRef<CanvasContextState['contexts']>({
+    grid: null,
+    landscape: null
+  })
   const scale = useRef<CanvasContextState['scale']>(SCALE.INIT)
   const originOffset =
     useRef<CanvasContextState['originOffset']>(ZERO_AXIAL_COORDS)
 
   const contextValue: CanvasContextState = {
-    ref: canvasRef.current,
-    ctx: ctxRef.current,
+    wrapperRef: wrapperRef.current,
+    refs: canvasesRef.current,
+    contexts: contextsRef.current,
     scale: scale.current,
     originOffset: originOffset.current
   }

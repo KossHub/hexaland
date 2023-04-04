@@ -11,9 +11,20 @@ export interface CubeCoords {
 
 export type ShortCubeCoords = Omit<CubeCoords, 's'>
 
+export interface CanvasRefs {
+  grid: null | HTMLCanvasElement
+  landscape: null | HTMLCanvasElement
+}
+
+export interface CanvasContexts {
+  grid: null | CanvasRenderingContext2D
+  landscape: null | CanvasRenderingContext2D
+}
+
 export interface CanvasContextState {
-  ref: null | HTMLCanvasElement
-  ctx: null | CanvasRenderingContext2D
+  wrapperRef: null | HTMLDivElement
+  refs: CanvasRefs
+  contexts: CanvasContexts
   scale: number
   originOffset: AxialCoords
 }

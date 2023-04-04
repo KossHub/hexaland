@@ -4,8 +4,6 @@ export const SCALE = {
   INIT: 1
 }
 
-export const TILE_BORDER_COLOR = '#ccc'
-
 export const HEX_TILE_RADIUS = 36
 
 export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5

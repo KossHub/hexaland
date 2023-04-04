@@ -52,7 +52,7 @@ export class RectMap extends GameMap {
       return false
     }
 
-    return inRange(coords.q, row[0], row[row.length - 1])
+    return inRange(coords.q, row[0], row[row.length - 1] + 1)
   }
 
   private fillTuple() {
@@ -62,7 +62,7 @@ export class RectMap extends GameMap {
     for (let r = top; r <= bottom; r++) {
       const row = []
 
-      const r_offset = r >> 1 // Math.floor(r / 2.0)
+      const r_offset = r >> 1 // Math.floor(r / 2)
       for (let q = left - r_offset; q <= right - r_offset; q++) {
         row.push(q)
       }
