@@ -5,22 +5,23 @@ import {
   CanvasRefs,
   CanvasContexts
 } from '../../contexts/canvas/interfaces'
-import {GameMapContextState} from '../../contexts/gameMap/interfaces'
-import {RectMap} from '../../core/classes/GameMap/RectMap'
+import {GameContextState} from '../../contexts/game/interfaces'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
-import {useGameMapContext} from '../../contexts/gameMap/useGameMapContext'
+import {useGameContext} from '../../contexts/game/useGameContext'
 import {useCanvasListeners} from '../../hooks/useCanvasListeners'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import * as UI from './styles'
+import {Game} from '../../core/classes/Game/Game'
+import {RectMapInitData} from '../../core/interfaces/map.interfaces'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
   const canvas = useCanvasContext()
-  const gameMapState = useGameMapContext()
+  const gameState = useGameContext()
 
   const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
     canvas as CanvasContextState,
-    gameMapState as GameMapContextState
+    gameState as GameContextState
   )
 
   const wrapperRef = useRef<null | HTMLDivElement>(null)
@@ -83,13 +84,10 @@ const Canvas = () => {
       return
     }
 
-    gameMapState!.gameMap = new RectMap(
-      {
-        top: 0,
-        bottom: 399,
-        left: 0,
-        right: 599
-      },
+    gameState.game = new Game(
+        'dev_game',
+      {top: 0, bottom: 9, left: 0, right: 9},
+      [],
       () => setIsLoading(false)
     )
   }, [isCanvasInitialized])

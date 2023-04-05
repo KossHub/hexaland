@@ -47,7 +47,7 @@ const ActionListMenu: React.FC<ActionListMenuProps> = (props) => {
       onClose={handleClose}
       onOpen={() => setIsOpen(true)}
       ariaLabel="SpeedDial openIcon example"
-      sx={{position: 'absolute', bottom: 16, right: 'calc(50% - 28px)'}}
+      sx={{position: 'absolute', bottom: 16, right: '28px'}}
       icon={<SpeedDialIcon openIcon={<EditIcon />} />}
     >
       {actions.map((action) => (

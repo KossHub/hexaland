@@ -8,7 +8,7 @@ import SettingsModal from '../../modals/SettingsModal'
 import DonationModal from '../../modals/DonationModal'
 import ConfirmLogoutModal from '../../modals/ConfirmLogoutModal'
 import CanvasProvider from '../../contexts/canvas'
-import GameMapProvider from '../../contexts/gameMap'
+import GameMapProvider from '../../contexts/game'
 import ModalsProvider from '../../contexts/modals'
 import * as UI from './styles'
 

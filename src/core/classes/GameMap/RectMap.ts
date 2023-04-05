@@ -1,5 +1,5 @@
 import {
-  RectMapEdgesCubeCoords,
+  RectMapInitData,
   RectMapScheme
 } from '../../interfaces/map.interfaces'
 import {GameMap} from './GameMap'
@@ -10,7 +10,7 @@ import {inRange} from 'lodash'
 
 export class RectMap extends GameMap {
   constructor(
-    private _edges: RectMapEdgesCubeCoords,
+    private _edges: RectMapInitData,
     protected _initializedCb = () => {},
     protected _hexRadius = HEX_TILE_RADIUS
   ) {

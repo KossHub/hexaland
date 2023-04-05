@@ -310,24 +310,28 @@ const UserProfileModal = () => {
         ) : (
           <ButtonsWrapper>
             <Tooltip title="Отменить">
-              <IconButton
-                color="inherit"
-                onClick={() => setIsEditMode(false)}
-                disabled={isLoading}
-              >
-                <BlockRoundedIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => setIsEditMode(false)}
+                  disabled={isLoading}
+                >
+                  <BlockRoundedIcon />
+                </IconButton>
+              </span>
             </Tooltip>
 
             <Tooltip placement="bottom-start" title="Сохранить">
-              <IconButton
-                color="inherit"
-                type="submit"
-                form={isChangePasswordMode ? passwordFormId : userDataFormId}
-                disabled={isLoading || isSaveButtonDisabled}
-              >
-                <SaveRoundedIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  type="submit"
+                  form={isChangePasswordMode ? passwordFormId : userDataFormId}
+                  disabled={isLoading || isSaveButtonDisabled}
+                >
+                  <SaveRoundedIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </ButtonsWrapper>
         )

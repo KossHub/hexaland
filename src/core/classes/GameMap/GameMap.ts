@@ -1,3 +1,5 @@
+import {isEqual} from 'lodash'
+
 import {RectMapScheme} from '../../interfaces/map.interfaces'
 import {
   AxialCoords,
@@ -5,15 +7,9 @@ import {
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
-import {GameMapContextState} from '../../../contexts/gameMap/interfaces'
+import {GameContextState} from '../../../contexts/game/interfaces'
 import {HexTileTemplates} from '../../interfaces/hex.interfaces'
-import {
-  CUBE_DIRECTION_VECTORS,
-  TILE_BORDER_COLOR,
-  TILE_COLOR_TYPES,
-  Vector
-} from './constants'
-import {isEqual} from 'lodash'
+import {CUBE_DIRECTION_VECTORS, TILE_COLOR_TYPES, Vector} from './constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
 export class GameMap {
@@ -50,21 +46,43 @@ export class GameMap {
         const angleDeg = 60 * i - 30
         const angleRad = (Math.PI / 180) * angleDeg
         templateCtx.lineTo(
-          this._hexRadius * Math.cos(angleRad) + this._hexRadius,
-          this._hexRadius * Math.sin(angleRad) + this._hexRadius
+            this._hexRadius * Math.cos(angleRad) + this._hexRadius,
+            this._hexRadius * Math.sin(angleRad) + this._hexRadius
         )
       }
 
       const color = TILE_COLOR_TYPES[key as keyof HexTileTemplates]
 
       templateCtx.closePath()
-      templateCtx.strokeStyle = color || TILE_BORDER_COLOR
-      templateCtx.lineWidth = 1
-      templateCtx.stroke()
 
-      // if (color) {
-      //   templateCtx.fillStyle = color
-      //   templateCtx.fill()
+      switch (key) {
+        case 'selected': {
+          templateCtx.strokeStyle = color
+          templateCtx.lineWidth = 2
+          templateCtx.stroke()
+          break
+        }
+        case 'hovered': {
+          templateCtx.strokeStyle = color
+          templateCtx.lineWidth = 1
+          templateCtx.stroke()
+          break
+        }
+        default: {
+          templateCtx.strokeStyle = color
+          templateCtx.lineWidth = 1
+          templateCtx.stroke()
+        }
+      }
+
+      /** Grass 1 */
+      // const img = new Image(size, size)
+      // img.src = './assets/grass1.png'
+      // img.onload = () => {
+      //   templateCtx.translate( size / 2, size / 2 );
+      //   templateCtx.rotate( random(0, 5) * 60 * Math.PI/180 );
+      //   templateCtx.translate( -size / 2, -size / 2 );
+      //   templateCtx.drawImage(img, 0, 0)
       // }
 
       this._hexTileTemplate[key as keyof HexTileTemplates] = templateCanvas
@@ -173,8 +191,8 @@ export class GameMap {
   public drawHexTiles(
     canvas: CanvasContextState,
     centerHexCoords: ShortCubeCoords,
-    hoveredHex?: GameMapContextState['hoveredHex'],
-    selectedHex?: GameMapContextState['selectedHex']
+    hoveredHex?: GameContextState['hoveredHex'],
+    selectedHex?: GameContextState['selectedHex']
   ) {
     if (!canvas || !canvas.wrapperRef) {
       return

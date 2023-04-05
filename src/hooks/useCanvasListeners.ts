@@ -22,11 +22,11 @@ import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
-import {GameMapContextState} from '../contexts/gameMap/interfaces'
+import {GameContextState} from '../contexts/game/interfaces'
 
 export const useCanvasListeners = (
   canvas: CanvasContextState,
-  gameMapState: GameMapContextState
+  gameState: GameContextState
 ) => {
   const mouseDownInitPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const mousePrevPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
@@ -90,14 +90,14 @@ export const useCanvasListeners = (
   }
 
   const drawCanvas = () => {
-    if (canvas.wrapperRef && gameMapState.gameMap) {
+    if (canvas.wrapperRef && gameState && gameState?.game?.gameMap) {
       clearMap()
-      gameMapState.gameMap.drawHexTiles(
+      gameState.game.gameMap.drawHexTiles(
         // TODO: Rename and add canvases
         canvas,
         centerHexCoords.current,
-        gameMapState.hoveredHex,
-        gameMapState.selectedHex
+        gameState.hoveredHex,
+        gameState.selectedHex
       )
       setTimeout(() => {
         requestAnimationFrame(drawCanvas)
@@ -112,38 +112,38 @@ export const useCanvasListeners = (
     top: canvas.originOffset.y,
     right:
       canvas.originOffset.x +
-      gameMapState.gameMap!.widthInPixels * canvas.scale +
+      gameState.game!.gameMap!.widthInPixels * canvas.scale +
       2 * GAME_MAP_BORDER_SIZE,
     bottom:
       canvas.originOffset.y +
-      gameMapState.gameMap!.heightInPixels * canvas.scale +
+      gameState.game!.gameMap!.heightInPixels * canvas.scale +
       2 * GAME_MAP_BORDER_SIZE,
     left: canvas.originOffset.x
   })
 
   /** returns coords even out of game mar area */
   const getHexCubeCoords = (mousePosition: null | AxialCoords) => {
-    if (!gameMapState.gameMap) {
+    if (!gameState?.game?.gameMap) {
       return null
     }
 
     if (!mousePosition) {
-      gameMapState.hoveredHex = null
+      gameState.hoveredHex = null
       return null
     }
 
     const shiftedX =
       mousePosition.x / canvas.scale - // mouse origin
       canvas.originOffset.x / canvas.scale - // offset
-      (Math.sqrt(3) * gameMapState.gameMap.hexRadius) / 2 - // projecting hex part
+      (Math.sqrt(3) * gameState.game.gameMap.hexRadius) / 2 - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
     const shiftedY =
       mousePosition.y / canvas.scale - // mouse origin
       canvas.originOffset.y / canvas.scale - // offset
-      gameMapState.gameMap.hexRadius - // projecting hex part
+      gameState.game.gameMap.hexRadius - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
 
-    return gameMapState.gameMap.getHexCoords({
+    return gameState.game.gameMap.getHexCoords({
       x: shiftedX,
       y: shiftedY
     })
@@ -219,18 +219,18 @@ export const useCanvasListeners = (
 
   const setHoveredHex = (mousePosition: null | AxialCoords) => {
     const hexCoords = getHexCubeCoords(mousePosition)
-    gameMapState.hoveredHex =
-      hexCoords && gameMapState.gameMap!.doesHexExist(hexCoords)
+    gameState.hoveredHex =
+      hexCoords && gameState.game!.gameMap!.doesHexExist(hexCoords)
         ? hexCoords
         : null
   }
 
   const setSelectedHex = (mousePosition: null | AxialCoords) => {
     const hexCoords = getHexCubeCoords(mousePosition)
-    gameMapState.selectedHex =
+    gameState.selectedHex =
       hexCoords &&
-      gameMapState.gameMap!.doesHexExist(hexCoords) &&
-      isEqual(hexCoords, gameMapState.selectedHex)
+      gameState.game!.gameMap!.doesHexExist(hexCoords) &&
+      isEqual(hexCoords, gameState.selectedHex)
         ? null
         : hexCoords
   }
@@ -392,7 +392,7 @@ export const useCanvasListeners = (
     scaleAt({x: offsetX, y: offsetY}, delta)
 
     // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
-    if (gameMapState.hoveredHex) {
+    if (gameState.hoveredHex) {
       setHoveredHex({x: offsetX, y: offsetY})
     }
 

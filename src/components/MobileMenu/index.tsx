@@ -30,7 +30,8 @@ const MobileMenu = () => {
         />
         <BottomNavigationAction label="Favorites" icon={<FavoriteIcon />} />
         <BottomNavigationAction label="Favorites" icon={<FavoriteIcon />} />
-        <BottomNavigationAction disabled icon={<ActionListMenu />} />
+        <BottomNavigationAction disabled />
+        <ActionListMenu />
       </BottomNavigation>
       <UserMenu
         isMobile
