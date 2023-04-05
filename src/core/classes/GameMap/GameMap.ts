@@ -191,8 +191,8 @@ export class GameMap {
   public drawHexTiles(
     canvas: CanvasContextState,
     centerHexCoords: ShortCubeCoords,
-    hoveredHex?: GameContextState['hoveredHex'],
-    selectedHex?: GameContextState['selectedHex']
+    hoveredHex?: null | ShortCubeCoords,
+    selectedHex?: null | ShortCubeCoords
   ) {
     if (!canvas || !canvas.wrapperRef) {
       return

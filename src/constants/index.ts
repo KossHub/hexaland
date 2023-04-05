@@ -8,7 +8,7 @@ export const HEX_TILE_RADIUS = 32
 
 export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5
 
-export const LONG_TOUCH_DURATION_MS = 500
+export const LONG_TOUCH_DURATION_MS = 300
 
 export const ACCEPTABLE_CLICK_OFFSET_PX = 10
 

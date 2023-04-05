@@ -2,6 +2,7 @@ import {v4} from 'uuid'
 
 import {RectMapInitData} from '../../interfaces/map.interfaces'
 import {RectMap} from '../GameMap/RectMap'
+import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 
 // TODO: implement classes and interfaces
 class Player {}
@@ -14,6 +15,8 @@ export class Game {
   readonly id: null | string = null
   private _map: null | RectMap = null
   private _metaData: null | GameMetaData = null
+  private _selectedHex: null | ShortCubeCoords = null
+  private _hoveredHex: null | ShortCubeCoords = null
 
   constructor(
     private _name: string,
@@ -64,5 +67,23 @@ export class Game {
 
   public get players() {
     return this._players
+  }
+
+  public get selectedHex() {
+    return this._selectedHex
+  }
+
+  public set selectedHex(coords: null | ShortCubeCoords) {
+    // TODO: put here if exist implementation
+    this._selectedHex = coords
+  }
+
+  public get hoveredHex() {
+    return this._hoveredHex
+  }
+
+  public set hoveredHex(coords: null | ShortCubeCoords) {
+    // TODO: put here if exist implementation
+    this._hoveredHex = coords
   }
 }

@@ -1,18 +1,12 @@
 import React, {useRef, useState, useEffect} from 'react'
 
-import {
-  CanvasContextState,
-  CanvasRefs,
-  CanvasContexts
-} from '../../contexts/canvas/interfaces'
-import {GameContextState} from '../../contexts/game/interfaces'
+import {CanvasRefs, CanvasContexts} from '../../contexts/canvas/interfaces'
+import {Game} from '../../core/classes/Game/Game'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useGameContext} from '../../contexts/game/useGameContext'
 import {useCanvasListeners} from '../../hooks/useCanvasListeners'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import * as UI from './styles'
-import {Game} from '../../core/classes/Game/Game'
-import {RectMapInitData} from '../../core/interfaces/map.interfaces'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
@@ -20,8 +14,8 @@ const Canvas = () => {
   const gameState = useGameContext()
 
   const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
-    canvas as CanvasContextState,
-    gameState as GameContextState
+    canvas,
+    gameState
   )
 
   const wrapperRef = useRef<null | HTMLDivElement>(null)
@@ -85,7 +79,7 @@ const Canvas = () => {
     }
 
     gameState.game = new Game(
-        'dev_game',
+      'dev_game',
       {top: 0, bottom: 9, left: 0, right: 9},
       [],
       () => setIsLoading(false)
