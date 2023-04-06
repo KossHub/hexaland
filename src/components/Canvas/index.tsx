@@ -40,8 +40,8 @@ const Canvas = () => {
       canvas.wrapperRef = wrapperRef.current
     }
 
-    const width = canvas.wrapperRef?.clientWidth || 0
-    const height = canvas.wrapperRef?.clientHeight || 0
+    const width = canvas.wrapperRef.clientWidth
+    const height = canvas.wrapperRef.clientHeight
 
     if (Object.values(canvas.refs).some((ref) => !ref)) {
       canvas.refs = {
@@ -62,11 +62,17 @@ const Canvas = () => {
 
     if (Object.values(canvas.contexts).some((ctx) => !ctx)) {
       Object.keys(canvas.contexts).forEach((key) => {
-        canvas.contexts[key as keyof CanvasContexts] = canvas.refs[
-          key as keyof CanvasRefs
-        ]!.getContext('2d', {
+        const context = canvas.refs[key as keyof CanvasRefs]!.getContext('2d', {
           alpha: key !== 'landscape' // only the bottom layer isn't transparent
-        })
+        }) as CanvasRenderingContext2D
+
+        // FIXME: duplicated code
+        if (key === 'landscape') {
+          context.fillStyle = '#FAFCFF'
+          context.fillRect(0, 0, width, height)
+        }
+
+        canvas.contexts[key as keyof CanvasContexts] = context
       })
 
       setIsCanvasInitialized(true)

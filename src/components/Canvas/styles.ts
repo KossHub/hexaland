@@ -12,7 +12,7 @@ export const Wrapper = styled('div')(({theme}) => ({
     height: '100%',
     width: '100%',
     position: 'absolute',
-    imageRendering: 'pixelated',
+    // imageRendering: 'pixelated', '// FIXME: to use or not to use
 
     '&#canvasLandscape': {
       zIndex: 2

@@ -6,7 +6,8 @@ import {CssBaseline, GlobalStyles} from '@mui/material'
 import 'firebase/auth'
 import 'dayjs/locale/ru'
 
-import ProtectedRoute from '../ProtectedRoute'
+import AuthenticatedRoute from '../AuthenticatedRoute'
+import UnauthenticatedRoute from '../UnauthenticatedRoute'
 import HexaPage from '../../pages/HexaPage'
 import LoginPage from '../../pages/LoginPage'
 import SignupPage from '../../pages/SignupPage'
@@ -16,6 +17,7 @@ import NotFound from '../../pages/NotFound'
 import SnackbarProvider from '../../contexts/snackbar'
 import AuthProvider from '../../contexts/auth'
 import Theme from '../Theme'
+import PreHome from '../PreHome'
 
 const App = () => {
   dayjs.locale('ru')
@@ -32,7 +34,7 @@ const App = () => {
             overscrollBehavior: 'none' // disable refresh page behavior on mobile
           },
           body: {
-            height: '100%',
+            height: '100%'
           },
           ['#root']: {
             height: '100%'
@@ -43,17 +45,17 @@ const App = () => {
         <SnackbarProvider>
           <AuthProvider>
             <Routes>
-              <Route
-                index
-                element={
-                  <ProtectedRoute>
-                    <HexaPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="login" element={<LoginPage />} />
-              <Route path="signup" element={<SignupPage />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route element={<UnauthenticatedRoute />}>
+                <Route path="/" element={<PreHome />} />
+                <Route path="login" element={<LoginPage />} />
+                <Route path="signup" element={<SignupPage />} />
+                <Route path="forgot-password" element={<ForgotPassword />} />
+              </Route>
+
+              <Route element={<AuthenticatedRoute />}>
+                <Route path="/home" element={<HexaPage />} />
+              </Route>
+
               <Route path="welcome" element={<WelcomePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

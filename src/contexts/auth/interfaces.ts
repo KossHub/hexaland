@@ -3,8 +3,8 @@ import {User as FirebaseUser, Auth as FirebaseAuth} from 'firebase/auth'
 
 export interface AuthContextState {
   auth: FirebaseAuth
-  currentUser: null | FirebaseUser
-  setCurrentUser: React.Dispatch<React.SetStateAction<null | FirebaseUser>>
+  currentUser: undefined | null | FirebaseUser
+  setCurrentUser: React.Dispatch<React.SetStateAction<undefined | null | FirebaseUser>>
 }
 
 export interface AuthProviderProps {

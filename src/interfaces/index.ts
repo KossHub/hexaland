@@ -13,3 +13,5 @@ export interface EnqueueSnackbarOptions
   extends OptionsWithExtraProps<VariantType> {
   onlyBottom?: boolean
 }
+
+export type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>

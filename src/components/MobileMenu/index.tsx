@@ -2,7 +2,8 @@ import React, {useState, memo} from 'react'
 import {BottomNavigation, BottomNavigationAction} from '@mui/material'
 import {
   AccountCircle as AccountCircleIcon,
-  Favorite as FavoriteIcon
+  Favorite as FavoriteIcon,
+  TravelExploreRounded as TravelExploreRoundedIcon
 } from '@mui/icons-material'
 
 import UserMenu from '../UserMenu'
@@ -20,7 +21,7 @@ const MobileMenu = () => {
 
   return (
     <UI.Wrapper elevation={3}>
-      <BottomNavigation showLabels>
+      <BottomNavigation showLabels sx={{minWidth: 'fit-content'}}>
         <BottomNavigationAction
           label="Меню"
           aria-controls="user-menu-appbar"
@@ -30,8 +31,11 @@ const MobileMenu = () => {
         />
         <BottomNavigationAction label="Favorites" icon={<FavoriteIcon />} />
         <BottomNavigationAction label="Favorites" icon={<FavoriteIcon />} />
-        <BottomNavigationAction disabled />
-        <ActionListMenu />
+        <BottomNavigationAction
+          label="Исследовать"
+          icon={<TravelExploreRoundedIcon />}
+        />
+        <BottomNavigationAction icon={<ActionListMenu />} />
       </BottomNavigation>
       <UserMenu
         isMobile

@@ -18,11 +18,11 @@ import {
   CanvasContexts,
   CanvasRefs
 } from '../contexts/canvas/interfaces'
+import {GameContextState} from '../contexts/game/interfaces'
 import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
-import {GameContextState} from '../contexts/game/interfaces'
 
 export const useCanvasListeners = (
   canvas: CanvasContextState,
@@ -95,7 +95,6 @@ export const useCanvasListeners = (
     if (canvas.wrapperRef && game && game?.gameMap) {
       clearMap()
       game.gameMap.drawHexTiles(
-        // TODO: Rename and add canvases
         canvas,
         centerHexCoords.current,
         game.hoveredHex,

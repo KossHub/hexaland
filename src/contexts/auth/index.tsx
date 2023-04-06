@@ -1,5 +1,4 @@
 import React, {createContext, useState, useEffect} from 'react'
-import {useNavigate} from 'react-router-dom'
 import {
   getAuth,
   onAuthStateChanged,
@@ -16,28 +15,18 @@ auth.languageCode = 'ru'
 
 export const AuthContext = createContext<AuthContextState>({
   auth,
-  currentUser: null,
+  currentUser: undefined,
   setCurrentUser: () => null
 })
 
 const AuthProvider: React.FC<AuthProviderProps> = (props) => {
   const {children} = props
 
-  const navigate = useNavigate()
-
-  const [currentUser, setCurrentUser] = useState<null | FirebaseUser>(null)
+  const [currentUser, setCurrentUser] = useState<AuthContextState['currentUser']>(undefined)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user)
-        navigate('/')
-      }
-    })
-
-    return () => {
-      unsubscribe()
-    }
+    const unsubscribe = onAuthStateChanged(auth, setCurrentUser)
+    return unsubscribe
   }, [])
 
   const contextValue: AuthContextState = {

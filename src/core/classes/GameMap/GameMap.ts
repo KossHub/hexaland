@@ -7,13 +7,23 @@ import {
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
-import {GameContextState} from '../../../contexts/game/interfaces'
-import {HexTileTemplates} from '../../interfaces/hex.interfaces'
-import {CUBE_DIRECTION_VECTORS, TILE_COLOR_TYPES, Vector} from './constants'
+import {
+  LandscapeTemplates,
+  HexTileTemplates
+} from '../../interfaces/hex.interfaces'
+import {
+  CUBE_DIRECTION_VECTORS,
+  LANDSCAPE,
+  TILE_COLOR_TYPES,
+  Vector
+} from './constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
 export class GameMap {
-  private _hexTileTemplate: HexTileTemplates = {
+  private _landscapeTemplates: LandscapeTemplates = {}
+
+  // TODO: define the same as with _landscapeTemplates
+  private _hexTileTemplates: HexTileTemplates = {
     default: null,
     hovered: null,
     selected: null
@@ -22,11 +32,36 @@ export class GameMap {
   protected _mapScheme: RectMapScheme = {}
 
   constructor(protected _hexRadius: number) {
+    this.fillLandscapeTemplates()
     this.fillHexTileTemplates()
   }
 
   protected doesHexExist(coords: ShortCubeCoords): boolean {
     throw new Error('Method not implemented.')
+  }
+
+  private fillLandscapeTemplates() {
+    Object.keys(LANDSCAPE).forEach((key) => {
+      const templateCanvas = document.createElement('canvas')
+      const size = this._hexRadius * 2
+      templateCanvas.width = size
+      templateCanvas.height = size
+      const templateCtx = templateCanvas.getContext(
+        '2d'
+      ) as CanvasRenderingContext2D
+
+      /** Grass 1 */
+      const img = new Image(size, size)
+      img.src = `./assets/landscape/${LANDSCAPE[key as keyof typeof LANDSCAPE]}`
+      img.onload = () => {
+        // templateCtx.translate( size / 2, size / 2 );
+        // templateCtx.rotate( random(0, 5) * 60 * Math.PI/180 );
+        // templateCtx.translate( -size / 2, -size / 2 );
+        templateCtx.drawImage(img, 0, 0)
+      }
+
+      this._landscapeTemplates[key as keyof LandscapeTemplates] = templateCanvas
+    })
   }
 
   private fillHexTileTemplates() {
@@ -46,8 +81,8 @@ export class GameMap {
         const angleDeg = 60 * i - 30
         const angleRad = (Math.PI / 180) * angleDeg
         templateCtx.lineTo(
-            this._hexRadius * Math.cos(angleRad) + this._hexRadius,
-            this._hexRadius * Math.sin(angleRad) + this._hexRadius
+          this._hexRadius * Math.cos(angleRad) + this._hexRadius,
+          this._hexRadius * Math.sin(angleRad) + this._hexRadius
         )
       }
 
@@ -75,17 +110,7 @@ export class GameMap {
         }
       }
 
-      /** Grass 1 */
-      // const img = new Image(size, size)
-      // img.src = './assets/grass1.png'
-      // img.onload = () => {
-      //   templateCtx.translate( size / 2, size / 2 );
-      //   templateCtx.rotate( random(0, 5) * 60 * Math.PI/180 );
-      //   templateCtx.translate( -size / 2, -size / 2 );
-      //   templateCtx.drawImage(img, 0, 0)
-      // }
-
-      this._hexTileTemplate[key as keyof HexTileTemplates] = templateCanvas
+      this._hexTileTemplates[key as keyof HexTileTemplates] = templateCanvas
     })
   }
 
@@ -93,8 +118,25 @@ export class GameMap {
     return this._hexRadius
   }
 
+  private drawLandscape(
+    ctx: null | CanvasRenderingContext2D,
+    coords: AxialCoords
+  ) {
+    if (!ctx) {
+      return
+    }
+
+    ctx.save()
+    ctx.drawImage(
+      this._landscapeTemplates.GRASS as HTMLCanvasElement,
+      coords.x - this._hexRadius,
+      coords.y - this._hexRadius
+    )
+    ctx.restore()
+  }
+
   private drawHexTile(
-    ctx: CanvasRenderingContext2D,
+    ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
     isHighlighted?: boolean,
     isSelected?: boolean
@@ -105,14 +147,14 @@ export class GameMap {
 
     ctx.save()
 
-    let offscreenCanvasTemplate = this._hexTileTemplate
+    let offscreenCanvasTemplate = this._hexTileTemplates
       .default as HTMLCanvasElement
 
     if (isSelected) {
-      offscreenCanvasTemplate = this._hexTileTemplate
+      offscreenCanvasTemplate = this._hexTileTemplates
         .selected as HTMLCanvasElement
     } else if (isHighlighted) {
-      offscreenCanvasTemplate = this._hexTileTemplate
+      offscreenCanvasTemplate = this._hexTileTemplates
         .hovered as HTMLCanvasElement
     }
 
@@ -249,8 +291,10 @@ export class GameMap {
         return 0
       })
       .forEach(({coords, isHighlighted, isSelected}) => {
+        this.drawLandscape(canvas.contexts.landscape, coords)
+
         this.drawHexTile(
-          canvas.contexts.grid as CanvasRenderingContext2D,
+          canvas.contexts.grid,
           coords,
           isHighlighted,
           isSelected

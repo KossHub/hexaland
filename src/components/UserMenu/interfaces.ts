@@ -1,5 +1,5 @@
 export interface UserMenuProps {
   anchorEl: null | HTMLElement
-  onClose: () => void,
+  onClose: () => void
   isMobile?: boolean
 }

@@ -5,8 +5,8 @@ import {useNavigate} from 'react-router-dom'
 const NotFound = () => {
   const navigate = useNavigate()
 
-  const goToLoginPage = () => {
-    navigate('/login')
+  const goToHomePage = () => {
+    navigate('/')
   }
 
   return (
@@ -15,8 +15,8 @@ const NotFound = () => {
         404: Page not found 😔
       </Typography>
 
-      <Link component="button" variant="body2" onClick={goToLoginPage}>
-        Перейти к авторизации
+      <Link component="button" variant="body2" onClick={goToHomePage}>
+        На главную
       </Link>
     </Container>
   )

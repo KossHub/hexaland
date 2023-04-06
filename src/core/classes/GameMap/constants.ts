@@ -18,3 +18,7 @@ export const CUBE_DIRECTION_VECTORS: Record<string, ShortCubeCoords> = {
 
 export type Vector =
   (typeof CUBE_DIRECTION_VECTORS)[keyof typeof CUBE_DIRECTION_VECTORS]
+
+export const LANDSCAPE = {
+  GRASS: 'grass1.png'
+} as const

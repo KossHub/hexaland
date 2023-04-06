@@ -1,7 +1,6 @@
 import React from 'react'
-import {Link, Typography} from '@mui/material'
+import {Link, Typography, Container} from '@mui/material'
 import {useNavigate} from 'react-router-dom'
-import {Container} from '@mui/material'
 
 import {QRDonationIcon} from '../../assets/QRDonationIcon'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
@@ -10,9 +9,9 @@ const WelcomePage = () => {
   const navigation = useNavigate()
   const {closeSnackbar} = useSnackbar()
 
-  const goToSignupPage = () => {
+  const goToHomePage = () => {
     closeSnackbar()
-    navigation('/signup')
+    navigation('/')
   }
 
   return (
@@ -21,8 +20,8 @@ const WelcomePage = () => {
         О проекте
       </Typography>
 
-      <Link component="button" variant="body2" onClick={goToSignupPage}>
-        Перейти к регистрации
+      <Link component="button" variant="body2" onClick={goToHomePage}>
+        На главную
       </Link>
 
       <Typography variant="body1" mt={2} mb={8}>
