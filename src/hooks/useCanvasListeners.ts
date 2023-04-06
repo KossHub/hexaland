@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import {inRange, isEqual} from 'lodash'
 
 import {
@@ -242,7 +242,7 @@ export const useCanvasListeners = (
         : hexCoords
   }
 
-  const onResize = () => {
+  const onResize = useCallback(() => {
     if (!canvas.wrapperRef) {
       return
     }
@@ -259,9 +259,9 @@ export const useCanvasListeners = (
 
     setHoveredHex(null)
     updateCenterHex()
-  }
+  }, [])
 
-  const mouseEvent = (event: MouseEvent) => {
+  const mouseEvent = useCallback((event: MouseEvent) => {
     if (event.type === 'mousedown') {
       mouseDownInitPos.current = {
         x: event.offsetX,
@@ -307,9 +307,9 @@ export const useCanvasListeners = (
       x: event.offsetX,
       y: event.offsetY
     }
-  }
+  }, [])
 
-  const onTouchStart = (event: TouchEvent) => {
+  const onTouchStart = useCallback((event: TouchEvent) => {
     event.preventDefault()
 
     const touch1 = event.touches[0]
@@ -327,9 +327,9 @@ export const useCanvasListeners = (
     } else {
       prevTouches.current = []
     }
-  }
+  }, [])
 
-  const onTouchMove = (event: TouchEvent) => {
+  const onTouchMove = useCallback((event: TouchEvent) => {
     event.preventDefault()
 
     const touch1 = event.touches[0]
@@ -363,9 +363,9 @@ export const useCanvasListeners = (
     }
 
     updateCenterHex()
-  }
+  }, [])
 
-  const onTouchEnd = () => {
+  const onTouchEnd = useCallback(() => {
     const [prevTouch] = prevTouches.current
 
     if (!initTouch.current || !prevTouch) {
@@ -387,9 +387,9 @@ export const useCanvasListeners = (
     }
 
     initTouch.current = null
-  }
+  }, [])
 
-  const mouseWheelEvent = (event: WheelEvent) => {
+  const mouseWheelEvent = useCallback((event: WheelEvent) => {
     event.preventDefault() // TODO: Check if all preventDefault required on this page
 
     const {offsetX, offsetY, deltaY} = event
@@ -404,9 +404,9 @@ export const useCanvasListeners = (
     }
 
     updateCenterHex()
-  }
+  }, [])
 
-  const addCanvasListeners = () => {
+  const addCanvasListeners = useCallback(() => {
     if (!canvas.wrapperRef) {
       return
     }
@@ -429,9 +429,16 @@ export const useCanvasListeners = (
       passive: false
     })
     window.addEventListener('resize', onResize, {passive: true})
-  }
+  }, [
+    mouseEvent,
+    onTouchStart,
+    onTouchMove,
+    onTouchEnd,
+    mouseWheelEvent,
+    onResize
+  ])
 
-  const removeCanvasListeners = () => {
+  const removeCanvasListeners = useCallback(() => {
     if (!canvas.wrapperRef) {
       return
     }
@@ -447,7 +454,14 @@ export const useCanvasListeners = (
     canvas.wrapperRef.removeEventListener('touchend', onTouchEnd)
     canvas.wrapperRef.removeEventListener('wheel', mouseWheelEvent)
     window.removeEventListener('resize', onResize)
-  }
+  }, [
+    mouseEvent,
+    onTouchStart,
+    onTouchMove,
+    onTouchEnd,
+    mouseWheelEvent,
+    onResize
+  ])
 
   return {
     addCanvasListeners,
