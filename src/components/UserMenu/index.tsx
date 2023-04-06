@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Avatar, Divider, Menu, MenuItem, PopoverOrigin} from '@mui/material'
 import {
   Logout as LogoutIcon,
@@ -17,11 +17,11 @@ import {UserMenuProps} from './interfaces'
 const UserMenu = (props: UserMenuProps) => {
   const {anchorEl, isMobile, onClose} = props
 
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
   const {currentUser} = useAuthContext()
   const {setOpenedModal} = useModalsContext()
   const {enqueueSnackbar} = useSnackbar()
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const transformOrigin: PopoverOrigin = isMobile
     ? {horizontal: 'left', vertical: 'bottom'}
@@ -51,22 +51,15 @@ const UserMenu = (props: UserMenuProps) => {
   }
 
   const openFullscreen = async () => {
-    const elem = document.documentElement as HTMLElement & {
-      webkitRequestFullscreen: () => Promise<void>
-      msRequestFullscreen: () => Promise<void>
-    }
+    const elem = document.documentElement
 
-    try {
-      if (elem?.requestFullscreen) {
-        await elem.requestFullscreen()
-      } else if (elem?.webkitRequestFullscreen) {
-        await elem.webkitRequestFullscreen() /** Safari */
-      } else if (elem?.msRequestFullscreen) {
-        await elem.msRequestFullscreen() /** IE11 */
-      }
-
-      setIsFullscreen(true)
-    } catch {
+    if (elem.requestFullscreen) {
+      await elem.requestFullscreen()
+    } else if ((elem as any).webkitRequestFullscreen) {
+      await (elem as any).webkitRequestFullscreen() /** for Safari */
+    } else if ((elem as any).msRequestFullscreen) {
+      await (elem as any).msRequestFullscreen() /** for IE11 */
+    } else {
       enqueueSnackbar('Полноэкранный режим не поддерживается', {
         variant: 'error'
       })
@@ -74,32 +67,31 @@ const UserMenu = (props: UserMenuProps) => {
   }
 
   const closeFullscreen = async () => {
-    const doc = document as Document & {
-      webkitExitFullscreen: () => Promise<void>
-      msExitFullscreen: () => Promise<void>
+    if (!document) {
+      return
     }
 
-    try {
-      if (doc.exitFullscreen) {
-        await doc.exitFullscreen()
-      } else if (doc?.webkitExitFullscreen) {
-        await doc.webkitExitFullscreen() /** Safari */
-      } else if (doc?.msExitFullscreen) {
-        await doc.msExitFullscreen() /** IE11 */
-      }
-
-      document.documentElement.scrollTo({top: 0, behavior: 'smooth'})
-
-      setIsFullscreen(false)
-    } catch {
+    if (document.exitFullscreen) {
+      await document.exitFullscreen()
+    } else if ((document as any).webkitExitFullscreen) {
+      /** for Safari */
+      await (document as any).webkitExitFullscreen()
+    } else if ((document as any).msExitFullscreen) {
+      /** for IE11 */
+      await (document as any).msExitFullscreen()
+    } else {
       enqueueSnackbar(
         <>
           Не удалось выйти из полноэкранного режима
           <br />
-          Попробуйте нажать Esc
+          Попробуйте нажать Esc или перезагрузить страницу
         </>,
         {variant: 'error'}
       )
+    }
+
+    if (!isFullscreen) {
+      document.documentElement.scrollTo({top: -64})
     }
   }
 
@@ -112,6 +104,26 @@ const UserMenu = (props: UserMenuProps) => {
       await openFullscreen()
     }
   }
+
+  useEffect(() => {
+    return () => {
+      if (document.fullscreenElement) {
+        closeFullscreen()
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const handler = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement))
+    }
+
+    document.addEventListener('fullscreenchange', handler)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handler)
+    }
+  }, [])
 
   return (
     <Menu
@@ -153,7 +165,7 @@ const UserMenu = (props: UserMenuProps) => {
       <Divider />
       <MenuItem onClick={handleLogout}>
         <LogoutIcon sx={{mr: 2}} fontSize="small" color="action" />
-        Выйти из аккаунта (v1.1.0)
+        Выйти из аккаунта (v0.1.9)
       </MenuItem>
     </Menu>
   )

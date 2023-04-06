@@ -418,10 +418,16 @@ export const useCanvasListeners = (
     canvas.wrapperRef.addEventListener('mousedown', mouseEvent, {passive: true})
     canvas.wrapperRef.addEventListener('mouseup', mouseEvent, {passive: true})
     canvas.wrapperRef.addEventListener('mouseout', mouseEvent, {passive: true})
-    canvas.wrapperRef.addEventListener('touchstart', onTouchStart)
-    canvas.wrapperRef.addEventListener('touchmove', onTouchMove)
-    canvas.wrapperRef.addEventListener('touchend', onTouchEnd)
-    canvas.wrapperRef.addEventListener('wheel', mouseWheelEvent)
+    canvas.wrapperRef.addEventListener('touchstart', onTouchStart, {
+      passive: false
+    })
+    canvas.wrapperRef.addEventListener('touchmove', onTouchMove, {
+      passive: false
+    })
+    canvas.wrapperRef.addEventListener('touchend', onTouchEnd, {passive: false})
+    canvas.wrapperRef.addEventListener('wheel', mouseWheelEvent, {
+      passive: false
+    })
     window.addEventListener('resize', onResize, {passive: true})
   }
 

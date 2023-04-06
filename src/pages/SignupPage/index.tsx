@@ -54,7 +54,7 @@ const SignupPage = () => {
     setIsLoading(true)
     createUserWithEmailAndPassword(auth, form.email.trim(), form.password)
       .then(() => {
-        navigate('/')
+        navigate('/home', {replace: true})
         closeSnackbar()
         enqueueSnackbar('Вы успешно зарегистрировались', {variant: 'success'})
       })
@@ -71,11 +71,11 @@ const SignupPage = () => {
   }
 
   const goToLoginPage = () => {
-    navigate('/login')
+    navigate('/login', {replace: true})
   }
 
   const goToHomeGuest = () => {
-    navigate('/welcome')
+    navigate('/welcome', {replace: true})
     enqueueSnackbar(
       <>
         Вы вошли на страницу как гость

@@ -56,7 +56,7 @@ const ConfirmUserDeletionModal: React.FC<ConfirmUserDeletionModalProps> = (
     try {
       await deleteUser(currentUser as FirebaseUser)
       closeSnackbar()
-      navigate('/login')
+      navigate('/login', {replace: true})
       enqueueSnackbar('Аккаунт успешно удален', {
         variant: 'success',
         onlyBottom: true

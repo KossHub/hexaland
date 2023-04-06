@@ -28,7 +28,7 @@ const LoginPage = () => {
     setIsLoading(true)
     signInWithEmailAndPassword(auth, form.email, form.password)
       .then(() => {
-        navigate('/')
+        navigate('/home', {replace: true})
         closeSnackbar()
         enqueueSnackbar('Вы успешно вошли', {variant: 'success'})
       })
@@ -45,15 +45,15 @@ const LoginPage = () => {
   }
 
   const goToSignupPage = () => {
-    navigate('/signup')
+    navigate('/signup', {replace: true})
   }
 
   const goToForgotPasswordPage = () => {
-    navigate('/forgot-password')
+    navigate('/forgot-password', {replace: true})
   }
 
   const goToHomeGuest = () => {
-    navigate('/welcome')
+    navigate('/welcome', {replace: true})
     enqueueSnackbar(
       <>
         Вы вошли на страницу как гость

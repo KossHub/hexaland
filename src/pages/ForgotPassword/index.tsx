@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     sendPasswordResetEmail(auth, email, {
       url: 'https://hexaland-e91a6.web.app/login'
     }).finally(() => {
-      navigate('/login')
+      navigate('/login', {replace: true})
       enqueueSnackbar(
         'Письмо со ссылкой для восстановления пароля успешно отправлено',
         {variant: 'success', onlyBottom: true}
@@ -31,7 +31,7 @@ const ForgotPassword = () => {
   }
 
   const goToLoginPage = () => {
-    navigate('/login')
+    navigate('/login', {replace: true})
   }
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {

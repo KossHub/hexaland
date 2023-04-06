@@ -8,7 +8,7 @@ const PreHome = () => {
 
   useEffect(() => {
     if (currentUser === null) {
-      navigate('/login')
+      navigate('/login', {replace: true})
     }
   }, [currentUser])
 

@@ -6,7 +6,7 @@ const NotFound = () => {
   const navigate = useNavigate()
 
   const goToHomePage = () => {
-    navigate('/')
+    navigate('/', {replace: true})
   }
 
   return (

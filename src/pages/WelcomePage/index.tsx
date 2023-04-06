@@ -6,12 +6,12 @@ import {QRDonationIcon} from '../../assets/QRDonationIcon'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 
 const WelcomePage = () => {
-  const navigation = useNavigate()
+  const navigate = useNavigate()
   const {closeSnackbar} = useSnackbar()
 
   const goToHomePage = () => {
     closeSnackbar()
-    navigation('/')
+    navigate('/', {replace: true})
   }
 
   return (

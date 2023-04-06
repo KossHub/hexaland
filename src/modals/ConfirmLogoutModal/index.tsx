@@ -24,7 +24,7 @@ const ConfirmLogoutModal = () => {
     handleClose()
     closeSnackbar()
     signOut(auth).then(() => {
-      navigate('/login')
+      navigate('/login', {replace: true})
     })
   }
 
