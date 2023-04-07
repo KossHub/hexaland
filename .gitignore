@@ -4,7 +4,7 @@
 .idea
 
 #firebase
-.firebase
+/.firebase
 .firebaserc
 
 # dependencies
