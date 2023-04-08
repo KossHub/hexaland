@@ -1,12 +1,12 @@
 export const SCALE = {
-  MIN: 0.5,
+  MIN: 0.3,
   MAX: 1,
-  INIT: 1
+  INIT: 1,
 }
 
 export const HEX_TILE_RADIUS = 32
 
-export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 1.5
+export const GAME_MAP_BORDER_SIZE = HEX_TILE_RADIUS * 2
 
 export const LONG_TOUCH_DURATION_MS = 300
 

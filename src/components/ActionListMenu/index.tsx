@@ -10,15 +10,15 @@ import {ActionItem, ActionListMenuProps} from './interfaces'
 
 // FIXME: to remove
 const defaultActions = [
-  {icon: <FileCopyIcon />, name: 'Copy', onClick: () => console.log('Copy')},
+  {icon: <FileCopyIcon />, name: 'Copy', onClick: () => null},
   {
     icon: <SaveIcon />,
     name: 'Save',
-    onClick: () => console.log('Save'),
-    keepOpen: true
+    keepOpen: true,
+    onClick: () => null
   },
-  {icon: <PrintIcon />, name: 'Print', onClick: () => console.log('Print')},
-  {icon: <ShareIcon />, name: 'Share', onClick: () => console.log('Share')}
+  {icon: <PrintIcon />, name: 'Print', onClick: () => null},
+  {icon: <ShareIcon />, name: 'Share', onClick: () => null}
 ]
 
 const ActionListMenu: React.FC<ActionListMenuProps> = (props) => {

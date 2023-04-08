@@ -62,15 +62,9 @@ const Canvas = () => {
 
     if (Object.values(canvas.contexts).some((ctx) => !ctx)) {
       Object.keys(canvas.contexts).forEach((key) => {
-        const context = canvas.refs[key as keyof CanvasRefs]!.getContext('2d', {
-          alpha: key !== 'landscape' // only the bottom layer isn't transparent
-        }) as CanvasRenderingContext2D
-
-        // FIXME: duplicated code
-        if (key === 'landscape') {
-          context.fillStyle = '#FAFCFF'
-          context.fillRect(0, 0, width, height)
-        }
+        const context = canvas.refs[key as keyof CanvasRefs]!.getContext(
+          '2d'
+        ) as CanvasRenderingContext2D
 
         canvas.contexts[key as keyof CanvasContexts] = context
       })
@@ -86,7 +80,7 @@ const Canvas = () => {
 
     gameState.game = new Game(
       'dev_game',
-      {top: 0, bottom: 9, left: 0, right: 9},
+      {top: 0, bottom: 99, left: 0, right: 99},
       [],
       () => setIsLoading(false)
     )

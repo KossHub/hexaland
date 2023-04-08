@@ -8,110 +8,37 @@ import {
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex/Hex'
 import {
-  LandscapeTemplates,
-  HexTileTemplates
+  CanvasTemplatesScheme,
+  MapDrawnType
 } from '../../interfaces/hex.interfaces'
-import {
-  CUBE_DIRECTION_VECTORS,
-  LANDSCAPE,
-  TILE_COLOR_TYPES,
-  Vector
-} from './constants'
+import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
+import {HexTileTemplates} from '../HexTileTemplates/TileTemplates'
+import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
+import {LANDSCAPE_TYPES} from '../LandscapeTemplates/constants'
+import {LandscapeTemplates} from '../LandscapeTemplates/LandscapeTemplates'
 
 export class GameMap {
-  private _landscapeTemplates: LandscapeTemplates = {}
+  protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
+    keyof typeof HEX_TILE_TYPES
+  > = null
 
-  // TODO: define the same as with _landscapeTemplates
-  private _hexTileTemplates: HexTileTemplates = {
-    default: null,
-    hovered: null,
-    selected: null
-  }
+  protected _landscapeTemplatesScheme: null | CanvasTemplatesScheme<
+    keyof typeof LANDSCAPE_TYPES
+  > = null
 
   protected _mapScheme: RectMapScheme = {}
 
   constructor(protected _hexRadius: number) {
-    this.fillLandscapeTemplates()
-    this.fillHexTileTemplates()
+    const hexTileTemplates = new HexTileTemplates(_hexRadius)
+    this._hexTileTemplatesScheme = hexTileTemplates.scheme
+
+    const landscapeTemplates = new LandscapeTemplates(_hexRadius)
+    this._landscapeTemplatesScheme = landscapeTemplates.scheme
   }
 
   protected doesHexExist(coords: ShortCubeCoords): boolean {
     throw new Error('Method not implemented.')
-  }
-
-  private fillLandscapeTemplates() {
-    Object.keys(LANDSCAPE).forEach((key) => {
-      const templateCanvas = document.createElement('canvas')
-      const size = this._hexRadius * 2
-      templateCanvas.width = size
-      templateCanvas.height = size
-      const templateCtx = templateCanvas.getContext(
-        '2d'
-      ) as CanvasRenderingContext2D
-
-      /** Grass 1 */
-      const img = new Image(size, size)
-      img.src = `./assets/landscape/${LANDSCAPE[key as keyof typeof LANDSCAPE]}`
-      img.onload = () => {
-        // templateCtx.translate( size / 2, size / 2 );
-        // templateCtx.rotate( random(0, 5) * 60 * Math.PI/180 );
-        // templateCtx.translate( -size / 2, -size / 2 );
-        templateCtx.drawImage(img, 0, 0)
-      }
-
-      this._landscapeTemplates[key as keyof LandscapeTemplates] = templateCanvas
-    })
-  }
-
-  private fillHexTileTemplates() {
-    Object.keys(TILE_COLOR_TYPES).forEach((key) => {
-      const templateCanvas = document.createElement('canvas')
-      const size = this._hexRadius * 2
-      templateCanvas.width = size
-      templateCanvas.height = size
-      const templateCtx = templateCanvas.getContext(
-        '2d'
-      ) as CanvasRenderingContext2D
-
-      /** draw hex tile templates */
-      templateCtx.beginPath()
-
-      for (let i = 0; i < 6; i++) {
-        const angleDeg = 60 * i - 30
-        const angleRad = (Math.PI / 180) * angleDeg
-        templateCtx.lineTo(
-          this._hexRadius * Math.cos(angleRad) + this._hexRadius,
-          this._hexRadius * Math.sin(angleRad) + this._hexRadius
-        )
-      }
-
-      const color = TILE_COLOR_TYPES[key as keyof HexTileTemplates]
-
-      templateCtx.closePath()
-
-      switch (key) {
-        case 'selected': {
-          templateCtx.strokeStyle = color
-          templateCtx.lineWidth = 2
-          templateCtx.stroke()
-          break
-        }
-        case 'hovered': {
-          templateCtx.strokeStyle = color
-          templateCtx.lineWidth = 1
-          templateCtx.stroke()
-          break
-        }
-        default: {
-          templateCtx.strokeStyle = color
-          templateCtx.lineWidth = 1
-          templateCtx.stroke()
-        }
-      }
-
-      this._hexTileTemplates[key as keyof HexTileTemplates] = templateCanvas
-    })
   }
 
   public get hexRadius() {
@@ -120,15 +47,22 @@ export class GameMap {
 
   private drawLandscape(
     ctx: null | CanvasRenderingContext2D,
-    coords: AxialCoords
+    coords: AxialCoords,
+    mapType: MapDrawnType = 'detailed'
   ) {
     if (!ctx) {
       return
     }
 
+    const canvasTemplate = this._landscapeTemplatesScheme?.[mapType]?.['GRASS_1']
+
+    if (!canvasTemplate) {
+      return
+    }
+
     ctx.save()
     ctx.drawImage(
-      this._landscapeTemplates.GRASS as HTMLCanvasElement,
+      canvasTemplate,
       coords.x - this._hexRadius,
       coords.y - this._hexRadius
     )
@@ -138,32 +72,25 @@ export class GameMap {
   private drawHexTile(
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
-    isHighlighted?: boolean,
-    isSelected?: boolean
+    mapType: MapDrawnType = 'detailed',
+    hexType: keyof typeof HEX_TILE_TYPES = 'default'
   ) {
     if (!ctx) {
       return
     }
 
-    ctx.save()
+    const canvasTemplate = this._hexTileTemplatesScheme?.[mapType]?.[hexType]
 
-    let offscreenCanvasTemplate = this._hexTileTemplates
-      .default as HTMLCanvasElement
-
-    if (isSelected) {
-      offscreenCanvasTemplate = this._hexTileTemplates
-        .selected as HTMLCanvasElement
-    } else if (isHighlighted) {
-      offscreenCanvasTemplate = this._hexTileTemplates
-        .hovered as HTMLCanvasElement
+    if (!canvasTemplate) {
+      return
     }
 
+    ctx.save()
     ctx.drawImage(
-      offscreenCanvasTemplate,
+      canvasTemplate,
       coords.x - this._hexRadius,
       coords.y - this._hexRadius
     )
-
     ctx.restore()
   }
 
@@ -261,44 +188,45 @@ export class GameMap {
       spiralRadiusInTiles
     )
 
-    const tilesToDraw = visibleTiles.filter((coords) =>
-      this.doesHexExist(coords)
-    )
-
-    tilesToDraw
+    visibleTiles
+      .filter((coords) => this.doesHexExist(coords))
       .map((coords) => {
         const hexTile = new Hex(coords.q, coords.r)
+        const isHighlighted = isEqual(coords, hoveredHex)
+        const isSelected = isEqual(coords, selectedHex)
+
+        let hexType: keyof typeof HEX_TILE_TYPES = 'default'
+        if (isSelected) {
+          hexType = 'selected'
+        } else if (isHighlighted) {
+          hexType = 'highlighted'
+        }
 
         return {
-          coords: hexTile.getAxialShiftedCoords(this._hexRadius, canvas.scale),
-          isHighlighted: isEqual(coords, hoveredHex),
-          isSelected: isEqual(coords, selectedHex)
+          hexType,
+          coords: hexTile.getAxialShiftedCoords(this._hexRadius, canvas.scale)
         }
       })
       .sort((a, b) => {
-        if (a.isSelected && !b.isSelected) {
+        if (a.hexType === 'selected' && b.hexType !== 'selected') {
           return 1
         }
-        if (!a.isSelected && b.isSelected) {
+        if (a.hexType !== 'selected' && b.hexType === 'selected') {
           return -1
         }
-        if (a.isHighlighted && !b.isHighlighted) {
+        if (a.hexType === 'highlighted' && b.hexType !== 'highlighted') {
           return 1
         }
-        if (!a.isHighlighted && b.isHighlighted) {
+        if (a.hexType !== 'highlighted' && b.hexType === 'highlighted') {
           return -1
         }
         return 0
       })
-      .forEach(({coords, isHighlighted, isSelected}) => {
-        this.drawLandscape(canvas.contexts.landscape, coords)
+      .forEach(({coords, hexType}) => {
+        const mapType = canvas.scale < 0.5 ? 'simplified' : 'detailed'
 
-        this.drawHexTile(
-          canvas.contexts.grid,
-          coords,
-          isHighlighted,
-          isSelected
-        )
+        this.drawHexTile(canvas.contexts.grid, coords, mapType, hexType)
+        this.drawLandscape(canvas.contexts.landscape, coords, mapType)
       })
   }
 

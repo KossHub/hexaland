@@ -35,7 +35,7 @@ const MobileMenu = () => {
           label="Исследовать"
           icon={<TravelExploreRoundedIcon />}
         />
-        <BottomNavigationAction icon={<ActionListMenu />} />
+        <BottomNavigationAction disabled icon={<ActionListMenu />} />
       </BottomNavigation>
       <UserMenu
         isMobile

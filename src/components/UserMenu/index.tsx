@@ -91,7 +91,7 @@ const UserMenu = (props: UserMenuProps) => {
     }
 
     if (!isFullscreen) {
-      document.documentElement.scrollTo({top: -64})
+      document.documentElement.scrollTo({top: -64}) // average android topbar
     }
   }
 

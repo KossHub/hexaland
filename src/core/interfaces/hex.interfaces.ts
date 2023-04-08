@@ -1,10 +1,12 @@
-import {PartialRecord} from '../../interfaces'
-import {LANDSCAPE} from '../classes/GameMap/constants'
+export type CanvasTemplateScheme<T extends string> = Record<T, HTMLCanvasElement>
 
-export type LandscapeTemplates = PartialRecord<keyof typeof LANDSCAPE, HTMLCanvasElement>
+export type MapDrawnType = 'detailed' | 'simplified'
 
-export interface HexTileTemplates {
-  default: null | HTMLCanvasElement
-  hovered: null | HTMLCanvasElement
-  selected: null | HTMLCanvasElement
-}
+export type HexDrawnTypes = Record<MapDrawnType, null | string>
+
+export type CanvasTemplatesScheme<T extends string> = Record<
+  keyof HexDrawnTypes,
+  CanvasTemplateScheme<T>
+>
+
+export type TemplateTypes = Record<string, HexDrawnTypes>
