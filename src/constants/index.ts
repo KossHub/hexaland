@@ -1,7 +1,8 @@
 export const SCALE = {
-  MIN: 0.3,
+  MIN: 0.2,
   MAX: 1,
   INIT: 1,
+  SIMPLIFIED_MAP: 0.45
 }
 
 export const HEX_TILE_RADIUS = 32

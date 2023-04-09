@@ -121,7 +121,6 @@ const UserMenu = (props: UserMenuProps) => {
       }
       setIsFullscreen(newIsFullscreen)
     }
-    console.log('ADD EVENT LISTENER')
     window.addEventListener('resize', handler)
 
     return () => {

@@ -17,6 +17,7 @@ import {HexTileTemplates} from '../HexTileTemplates/TileTemplates'
 import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {LANDSCAPE_TYPES} from '../LandscapeTemplates/constants'
 import {LandscapeTemplates} from '../LandscapeTemplates/LandscapeTemplates'
+import {SCALE} from "../../../constants";
 
 export class GameMap {
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
@@ -223,7 +224,7 @@ export class GameMap {
         return 0
       })
       .forEach(({coords, hexType}) => {
-        const mapType = canvas.scale < 0.5 ? 'simplified' : 'detailed'
+        const mapType = canvas.scale < SCALE.SIMPLIFIED_MAP ? 'simplified' : 'detailed'
 
         this.drawHexTile(canvas.contexts.grid, coords, mapType, hexType)
         this.drawLandscape(canvas.contexts.landscape, coords, mapType)

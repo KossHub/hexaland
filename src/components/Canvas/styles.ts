@@ -1,12 +1,16 @@
 import {styled} from '@mui/material/styles'
 
 export const Wrapper = styled('div')(({theme}) => ({
-  background: theme.palette.common.white,
+  position: 'relative',
+  background: 'antiquewhite',
   flexGrow: 1,
+  left: 0,
+  right: 0,
+  margin: '0 auto',
+  maxWidth: '1200px',
   width: '100%',
   height: '100%',
   zIndex: 1,
-  position: 'relative',
 
   '& > canvas': {
     height: '100%',
@@ -24,6 +28,7 @@ export const Wrapper = styled('div')(({theme}) => ({
   },
 
   [theme.breakpoints.down('md')]: {
+    margin: 0,
     height: `calc(100% - ${theme.spacing(7)})`
   }
 }))
