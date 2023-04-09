@@ -1,8 +1,8 @@
 import {styled} from '@mui/material/styles'
+import {Paper} from "@mui/material";
 
-export const Wrapper = styled('div')(({theme}) => ({
+export const Wrapper = styled(Paper)(({theme}) => ({
   position: 'relative',
-  background: 'antiquewhite',
   flexGrow: 1,
   left: 0,
   right: 0,

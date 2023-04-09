@@ -34,7 +34,7 @@ const TopBar: React.FC<TopBarProps> = (props) => {
             >
               <ArrowUpwardIcon aria-label="menu" />
             </IconButton>
-            <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+            <Typography variant="h6" component="div" sx={{flexGrow: 1, userSelect: 'none'}}>
               HEXALand
             </Typography>
             <Tooltip title="Меню пользователя" placement="bottom-start">

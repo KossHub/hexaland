@@ -18,7 +18,7 @@ const UserMenu = (props: UserMenuProps) => {
   const {anchorEl, isMobile, onClose} = props
 
   const [isFullscreen, setIsFullscreen] = useState(
-    window.innerHeight === window.screen.height
+    Boolean(document.fullscreenElement)
   )
 
   const {currentUser} = useAuthContext()
@@ -105,26 +105,20 @@ const UserMenu = (props: UserMenuProps) => {
 
   useEffect(() => {
     return () => {
-      if (isFullscreen) {
-        closeFullscreen().then(() => {
-          document.documentElement.scrollTo({top: -64})
-        })
+      if (document.fullscreenElement) {
+        closeFullscreen()
       }
     }
   }, [])
 
   useEffect(() => {
     const handler = () => {
-      const newIsFullscreen = window.innerHeight !== window.screen.height
-      if (newIsFullscreen) {
-        document.documentElement.scrollTo({top: -64})
-      }
-      setIsFullscreen(newIsFullscreen)
+      setIsFullscreen(Boolean(document.fullscreenElement))
     }
-    window.addEventListener('resize', handler)
+    window.addEventListener('fullscreenchange', handler)
 
     return () => {
-      window.removeEventListener('resize', handler)
+      window.removeEventListener('fullscreenchange', handler)
     }
   }, [])
 
@@ -169,7 +163,7 @@ const UserMenu = (props: UserMenuProps) => {
       <Divider />
       <MenuItem onClick={handleLogout}>
         <LogoutIcon sx={{mr: 2}} fontSize="small" color="action" />
-        Выйти из аккаунта (v0.1.12)
+        Выйти из аккаунта (v0.1.17)
       </MenuItem>
     </Menu>
   )

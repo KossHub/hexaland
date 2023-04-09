@@ -23,12 +23,12 @@ export class GameMap {
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof HEX_TILE_TYPES
   > = null
-
   protected _landscapeTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof LANDSCAPE_TYPES
   > = null
-
   protected _mapScheme: RectMapScheme = {}
+  private _selectedHex: null | ShortCubeCoords = null
+  private _hoveredHex: null | ShortCubeCoords = null
 
   constructor(protected _hexRadius: number) {
     const hexTileTemplates = new HexTileTemplates(_hexRadius)
@@ -38,7 +38,7 @@ export class GameMap {
     this._landscapeTemplatesScheme = landscapeTemplates.scheme
   }
 
-  protected doesHexExist(coords: ShortCubeCoords): boolean {
+  public doesHexExist(coords: ShortCubeCoords): boolean {
     throw new Error('Method not implemented.')
   }
 
@@ -158,6 +158,14 @@ export class GameMap {
     return result
   }
 
+  public get widthInPixels(): number {
+    throw new Error('widthInPixels is not implemented')
+  }
+
+  public get heightInPixels(): number {
+    throw new Error('heightInPixels is not implemented')
+  }
+
   public drawHexTiles(
     canvas: CanvasContextState,
     centerHexCoords: ShortCubeCoords,
@@ -250,5 +258,23 @@ export class GameMap {
     }
 
     return {q, r}
+  }
+
+  public get selectedHex() {
+    return this._selectedHex
+  }
+
+  public set selectedHex(coords: null | ShortCubeCoords) {
+    // TODO: put here implementation, if exists
+    this._selectedHex = coords
+  }
+
+  public get hoveredHex() {
+    return this._hoveredHex
+  }
+
+  public set hoveredHex(coords: null | ShortCubeCoords) {
+    // TODO: put here implementation, if exists
+    this._hoveredHex = coords
   }
 }

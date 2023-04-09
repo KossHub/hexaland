@@ -3,19 +3,20 @@ import React, {useRef, useState, useEffect} from 'react'
 import {CanvasRefs, CanvasContexts} from '../../contexts/canvas/interfaces'
 import {Game} from '../../core/classes/Game'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
-import {useGameContext} from '../../contexts/game/useGameContext'
+import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasListeners} from '../../hooks/useCanvasListeners'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import * as UI from './styles'
+import {RectMap} from '../../core/classes/GameMap/RectMap'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
   const canvas = useCanvasContext()
-  const gameState = useGameContext()
+  const mapState = useMapContext()
 
   const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
     canvas,
-    gameState
+    mapState
   )
 
   const wrapperRef = useRef<null | HTMLDivElement>(null)
@@ -23,7 +24,7 @@ const Canvas = () => {
   const canvasLandscapeRef = useRef<null | HTMLCanvasElement>(null)
 
   const [isCanvasInitialized, setIsCanvasInitialized] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   /** Init canvas state */
   useEffect(() => {
@@ -73,18 +74,20 @@ const Canvas = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!isCanvasInitialized) {
-      return
-    }
-
-    gameState.game = new Game(
-      'dev_game',
-      {top: 0, bottom: 99, left: 0, right: 99},
-      [],
-      () => setIsLoading(false)
-    )
-  }, [isCanvasInitialized])
+  // useEffect(() => {
+  //   if (!isCanvasInitialized) {
+  //     return
+  //   }
+  //
+  //   mapState.map = new RectMap({
+  //     top: 0,
+  //     bottom: 99,
+  //     left: 0,
+  //     right: 99
+  //   })
+  //
+  //   setIsLoading(false)
+  // }, [isCanvasInitialized])
 
   useEffect(() => {
     if (!isCanvasInitialized || isLoading) {
@@ -95,11 +98,12 @@ const Canvas = () => {
 
     return () => {
       removeCanvasListeners()
+
     }
   }, [isCanvasInitialized, isLoading])
 
   return (
-    <UI.Wrapper ref={wrapperRef}>
+    <UI.Wrapper square ref={wrapperRef} elevation={2}>
       <canvas ref={canvasGridRef} id="canvasGrid" />
       <canvas ref={canvasLandscapeRef} id="canvasLandscape" />
     </UI.Wrapper>

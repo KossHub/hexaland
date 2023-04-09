@@ -1,7 +1,7 @@
 import React, {createContext, useRef, PropsWithChildren} from 'react'
 
 import {CanvasContextState} from './interfaces'
-import {SCALE, ZERO_AXIAL_COORDS} from '../../constants'
+import {SCALE, ZERO_AXIAL_COORDS, ZERO_SHORT_CUBE_COORDS} from '../../constants'
 
 export const CanvasContext = createContext<null | CanvasContextState>(null)
 

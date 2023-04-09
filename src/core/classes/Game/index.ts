@@ -1,8 +1,6 @@
 import {v4} from 'uuid'
 
-import {RectMapInitData} from '../../interfaces/map.interfaces'
 import {RectMap} from '../GameMap/RectMap'
-import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 
 // TODO: implement classes and interfaces
 class Player {}
@@ -13,19 +11,17 @@ interface GameMetaData {
 
 export class Game {
   readonly id: null | string = null
-  private _map: null | RectMap = null
   private _metaData: null | GameMetaData = null
-  private _selectedHex: null | ShortCubeCoords = null
-  private _hoveredHex: null | ShortCubeCoords = null
 
   constructor(
     private _name: string,
-    mapInitData: RectMapInitData,
+    // mapInitData: RectMapInitData,
+    private _map: RectMap,
     private _players: Player[],
     initializedCb?: (uuid: string) => void
   ) {
     this.initGame()
-    this.initMap(mapInitData)
+    // this.initMap(mapInitData)
 
     const uuid = v4()
     this.id = uuid
@@ -41,9 +37,9 @@ export class Game {
     }
   }
 
-  private initMap(initData: RectMapInitData) {
-    this._map = new RectMap(initData)
-  }
+  // private initMap(initData: RectMapInitData) {
+  //   this._map = new RectMap(initData)
+  // }
 
   public draw() {
     // TODO: implement
@@ -67,23 +63,5 @@ export class Game {
 
   public get players() {
     return this._players
-  }
-
-  public get selectedHex() {
-    return this._selectedHex
-  }
-
-  public set selectedHex(coords: null | ShortCubeCoords) {
-    // TODO: put here implementation, if exists
-    this._selectedHex = coords
-  }
-
-  public get hoveredHex() {
-    return this._hoveredHex
-  }
-
-  public set hoveredHex(coords: null | ShortCubeCoords) {
-    // TODO: put here implementation, if exists
-    this._hoveredHex = coords
   }
 }

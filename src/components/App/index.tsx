@@ -9,6 +9,7 @@ import 'dayjs/locale/ru'
 import AuthenticatedRoute from '../AuthenticatedRoute'
 import UnauthenticatedRoute from '../UnauthenticatedRoute'
 import HexaPage from '../../pages/HexaPage'
+import MapEditorPage from '../../pages/MapEditorPage'
 import LoginPage from '../../pages/LoginPage'
 import SignupPage from '../../pages/SignupPage'
 import ForgotPassword from '../../pages/ForgotPassword'
@@ -35,11 +36,11 @@ const App = () => {
           },
           body: {
             height: '100%',
-            overscrollBehavior: 'none' // disable refresh page behavior on mobile
+            overscrollBehavior: 'none'
           },
           ['#root']: {
             height: '100%',
-            overscrollBehavior: 'none' // disable refresh page behavior on mobile
+            overscrollBehavior: 'none'
           }
         }}
       />
@@ -56,6 +57,7 @@ const App = () => {
 
               <Route element={<AuthenticatedRoute />}>
                 <Route path="/home" element={<HexaPage />} />
+                <Route path="/map-editor" element={<MapEditorPage />} />
               </Route>
 
               <Route path="welcome" element={<WelcomePage />} />
