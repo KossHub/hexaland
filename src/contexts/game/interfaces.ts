@@ -1,4 +1,4 @@
-import {Game} from '../../core/classes/Game/Game'
+import {Game} from '../../core/classes/Game'
 
 export interface GameContextState {
   game: null | Game

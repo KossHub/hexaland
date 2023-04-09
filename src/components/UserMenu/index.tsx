@@ -17,7 +17,9 @@ import {UserMenuProps} from './interfaces'
 const UserMenu = (props: UserMenuProps) => {
   const {anchorEl, isMobile, onClose} = props
 
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(
+    window.innerHeight === window.screen.height
+  )
 
   const {currentUser} = useAuthContext()
   const {setOpenedModal} = useModalsContext()
@@ -89,10 +91,6 @@ const UserMenu = (props: UserMenuProps) => {
         {variant: 'error'}
       )
     }
-
-    if (!isFullscreen) {
-      document.documentElement.scrollTo({top: -64}) // average android topbar
-    }
   }
 
   const toggleFullscreen = async () => {
@@ -107,26 +105,33 @@ const UserMenu = (props: UserMenuProps) => {
 
   useEffect(() => {
     return () => {
-      if (document.fullscreenElement) {
-        closeFullscreen()
+      if (isFullscreen) {
+        closeFullscreen().then(() => {
+          document.documentElement.scrollTo({top: -64})
+        })
       }
     }
   }, [])
 
   useEffect(() => {
     const handler = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement))
+      const newIsFullscreen = window.innerHeight !== window.screen.height
+      if (newIsFullscreen) {
+        document.documentElement.scrollTo({top: -64})
+      }
+      setIsFullscreen(newIsFullscreen)
     }
-
-    document.addEventListener('fullscreenchange', handler)
+    console.log('ADD EVENT LISTENER')
+    window.addEventListener('resize', handler)
 
     return () => {
-      document.removeEventListener('fullscreenchange', handler)
+      window.removeEventListener('resize', handler)
     }
   }, [])
 
   return (
     <Menu
+      keepMounted
       id="user-menu-appbar"
       anchorEl={anchorEl}
       transformOrigin={transformOrigin}
@@ -165,7 +170,7 @@ const UserMenu = (props: UserMenuProps) => {
       <Divider />
       <MenuItem onClick={handleLogout}>
         <LogoutIcon sx={{mr: 2}} fontSize="small" color="action" />
-        Выйти из аккаунта (v0.1.9)
+        Выйти из аккаунта (v0.1.12)
       </MenuItem>
     </Menu>
   )

@@ -74,7 +74,7 @@ export class Game {
   }
 
   public set selectedHex(coords: null | ShortCubeCoords) {
-    // TODO: put here if exist implementation
+    // TODO: put here implementation, if exists
     this._selectedHex = coords
   }
 
@@ -83,7 +83,7 @@ export class Game {
   }
 
   public set hoveredHex(coords: null | ShortCubeCoords) {
-    // TODO: put here if exist implementation
+    // TODO: put here implementation, if exists
     this._hoveredHex = coords
   }
 }

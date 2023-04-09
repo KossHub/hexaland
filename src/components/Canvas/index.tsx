@@ -1,7 +1,7 @@
 import React, {useRef, useState, useEffect} from 'react'
 
 import {CanvasRefs, CanvasContexts} from '../../contexts/canvas/interfaces'
-import {Game} from '../../core/classes/Game/Game'
+import {Game} from '../../core/classes/Game'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useGameContext} from '../../contexts/game/useGameContext'
 import {useCanvasListeners} from '../../hooks/useCanvasListeners'

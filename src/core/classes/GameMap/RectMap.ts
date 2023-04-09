@@ -2,7 +2,7 @@ import {
   RectMapInitData,
   RectMapScheme
 } from '../../interfaces/map.interfaces'
-import {GameMap} from './GameMap'
+import {GameMap} from './index'
 import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
 import {HEX_TILE_RADIUS} from '../../../constants'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
