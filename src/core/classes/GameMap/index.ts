@@ -6,17 +6,17 @@ import {
   CanvasContextState,
   ShortCubeCoords
 } from '../../../contexts/canvas/interfaces'
-import {Hex} from '../Hex/Hex'
+import {Hex} from '../Hex'
 import {
   CanvasTemplatesScheme,
   MapDrawnType
 } from '../../interfaces/hex.interfaces'
 import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
-import {HexTileTemplates} from '../HexTileTemplates/TileTemplates'
+import {HexTileTemplates} from '../HexTileTemplates'
 import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {LANDSCAPE_TYPES} from '../LandscapeTemplates/constants'
-import {LandscapeTemplates} from '../LandscapeTemplates/LandscapeTemplates'
+import {LandscapeTemplates} from '../LandscapeTemplates'
 import {SCALE} from "../../../constants";
 
 export class GameMap {

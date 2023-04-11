@@ -22,6 +22,8 @@ const MapEditorPage = () => {
   const [filename, setFilename] = useState('')
   const [fileData, setFileData] = useState<null | string>(null)
 
+  const fillEmptyTilesWithDefaultValue = () => {}
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
 
@@ -49,8 +51,7 @@ const MapEditorPage = () => {
       }
 
       setFilename(name)
-      setFileData(result)
-      // TODO: handle fileData
+      setFileData(JSON.parse(result))
     }
 
     reader.readAsBinaryString(file)
