@@ -1,9 +1,16 @@
-export interface MapScheme { // FIXME: rm if useless
-  [key: string]: (number | null)[]
+import {CubeCoords} from '../../contexts/canvas/interfaces'
+import {LANDSCAPE_TYPES} from '../classes/LandscapeTemplates/constants'
+
+export interface RectMapSchemeRow {
+  [key: CubeCoords['q']]: {
+    landscape: keyof typeof LANDSCAPE_TYPES
+    rotationDeg?: number
+    reflected?: boolean
+  }
 }
 
-export interface RectMapScheme extends MapScheme {
-  [key: string]: number[] // {r: [q,  q, ...]}
+export interface RectMapScheme {
+  [key: CubeCoords['r']]: RectMapSchemeRow
 }
 
 export interface RectMapInitData {

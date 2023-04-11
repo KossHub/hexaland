@@ -1,12 +1,14 @@
+import {inRange} from 'lodash'
+
 import {
   RectMapInitData,
-  RectMapScheme
+  RectMapScheme,
+  RectMapSchemeRow
 } from '../../interfaces/map.interfaces'
 import {GameMap} from './index'
 import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
 import {HEX_TILE_RADIUS} from '../../../constants'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
-import {inRange} from 'lodash'
 
 export class RectMap extends GameMap {
   constructor(
@@ -16,7 +18,7 @@ export class RectMap extends GameMap {
   ) {
     super(_hexRadius)
 
-    this.fillTuple()
+    this.fillDefaultScheme()
     this._initializedCb()
   }
 
@@ -52,19 +54,25 @@ export class RectMap extends GameMap {
       return false
     }
 
-    return inRange(coords.q, row[0], row[row.length - 1] + 1)
+    const arrOfQ = Object.keys(row).map((q) => Number(q))
+
+    return inRange(coords.q, Math.min(...arrOfQ), Math.max(...arrOfQ) + 1)
   }
 
-  private fillTuple() {
+  private fillDefaultScheme() {
     const {top, right, bottom, left} = this._edges
     const coordsScheme: RectMapScheme = {}
 
     for (let r = top; r <= bottom; r++) {
-      const row = []
+      const row: RectMapSchemeRow = {}
 
       const r_offset = r >> 1 // Math.floor(r / 2)
       for (let q = left - r_offset; q <= right - r_offset; q++) {
-        row.push(q)
+        row[q] = {
+          landscape: 'GRASS_1',
+          rotationDeg: 0,
+          reflected: false
+        }
       }
 
       coordsScheme[r] = row
