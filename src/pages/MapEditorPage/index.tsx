@@ -1,6 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import {isString} from 'lodash'
-import {Box, Button, Typography} from '@mui/material'
+import {Box, Button, IconButton, Typography} from '@mui/material'
+import {
+  RotateRightRounded as RotateRightRoundedIcon,
+  FlipRounded as FlipRoundedIcon,
+  RotateLeftRounded as RotateLeftRoundedIcon
+} from '@mui/icons-material'
 
 import Canvas from '../../components/Canvas'
 import TextField from '../../components/TextField'
@@ -9,6 +14,7 @@ import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {isJSON} from '../../utils/checker'
+import {getDefaultMapScheme} from '../../core/utils/canvasTemplate.utils'
 import {SIZE_LIMIT} from './constants'
 import * as UI from './styles'
 
@@ -23,6 +29,18 @@ const MapEditorPage = () => {
   const [fileData, setFileData] = useState<null | string>(null)
 
   const fillEmptyTilesWithDefaultValue = () => {}
+
+  const handleRotateRight = () => {
+    console.log('ROT >>')
+  }
+
+  const handleReflect = () => {
+    console.log('REF ::')
+  }
+
+  const handleRotateLeft = () => {
+    console.log('ROT <<')
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
@@ -58,11 +76,19 @@ const MapEditorPage = () => {
   }
 
   const handleSave = () => {
+    if (!mapState?.map?.mapScheme) {
+      enqueueSnackbar('Не удалось сохранить файл', {
+        variant: 'error',
+        anchorOrigin: {horizontal: 'right', vertical: 'bottom'}
+      })
+      return
+    }
+
     let el = document.createElement('a')
     el.setAttribute(
       'href',
       `data:text/plain;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(fileData)
+        JSON.stringify(mapState.map.mapScheme)
       )}`
     )
     el.setAttribute('download', filename)
@@ -73,19 +99,30 @@ const MapEditorPage = () => {
   }
 
   useEffect(() => {
-    mapState.map = new RectMap({
+    const mapScheme = getDefaultMapScheme({
       top: 0,
       bottom: Number(height) - 1,
       left: 0,
       right: Number(width) - 1
     })
+    mapState.map = new RectMap(mapScheme)
     canvas.originOffset.x = 0
     canvas.originOffset.y = 0
   }, [width, height])
 
   return (
     <UI.Wrapper maxWidth="xl">
-      <Box sx={{pt: 4, pr: 4, pb: 4, maxWidth: '320px'}}>
+      <Box
+        sx={{
+          pt: 4,
+          pr: 4,
+          pb: 4,
+          maxWidth: '320px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+      >
         <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mb: 2}}>
           <TextField
             size="small"
@@ -112,7 +149,27 @@ const MapEditorPage = () => {
           />
         </Box>
 
-        <Typography mb={2}>{filename || 'файл не загружен'}</Typography>
+        <Box sx={{display: 'flex', justifyContent: 'space-evenly'}}>
+          <IconButton
+            onClick={handleRotateLeft}
+            disabled={!mapState.selectedHex}
+          >
+            <RotateLeftRoundedIcon />
+          </IconButton>
+          <IconButton onClick={handleReflect} disabled={!mapState.selectedHex}>
+            <FlipRoundedIcon />
+          </IconButton>
+          <IconButton
+            onClick={handleRotateRight}
+            disabled={!mapState.selectedHex}
+          >
+            <RotateRightRoundedIcon />
+          </IconButton>
+        </Box>
+
+        <Typography mb={2} mt="auto">
+          {filename || 'файл не загружен'}
+        </Typography>
         <Box sx={{display: 'flex', gap: 1, width: '100%'}}>
           <Button variant="outlined" component="label" sx={{width: '100%'}}>
             Загрузить

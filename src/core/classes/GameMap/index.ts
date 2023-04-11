@@ -26,8 +26,8 @@ export class GameMap {
   protected _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
     null
   protected _mapScheme: RectMapScheme = {}
-  private _selectedHex: null | ShortCubeCoords = null
-  private _hoveredHex: null | ShortCubeCoords = null
+  // private _selectedHex: null | ShortCubeCoords = null
+  // private _hoveredHex: null | ShortCubeCoords = null
 
   constructor(protected _hexRadius: number) {
     const hexTileTemplates = new HexTileTemplates(_hexRadius)
@@ -289,21 +289,21 @@ export class GameMap {
     return {q, r}
   }
 
-  public get selectedHex() {
-    return this._selectedHex
-  }
-
-  public set selectedHex(coords: null | ShortCubeCoords) {
-    // TODO: put here implementation, if exists
-    this._selectedHex = coords
-  }
-
-  public get hoveredHex() {
-    return this._hoveredHex
-  }
-
-  public set hoveredHex(coords: null | ShortCubeCoords) {
-    // TODO: put here implementation, if exists
-    this._hoveredHex = coords
-  }
+  // public get selectedHex() {
+  //   return this._selectedHex
+  // }
+  //
+  // public set selectedHex(coords: null | ShortCubeCoords) {
+  //   // TODO: put here implementation, if exists
+  //   this._selectedHex = coords
+  // }
+  //
+  // public get hoveredHex() {
+  //   return this._hoveredHex
+  // }
+  //
+  // public set hoveredHex(coords: null | ShortCubeCoords) {
+  //   // TODO: put here implementation, if exists
+  //   this._hoveredHex = coords
+  // }
 }

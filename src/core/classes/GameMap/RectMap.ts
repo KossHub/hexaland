@@ -1,24 +1,21 @@
 import {inRange} from 'lodash'
 
-import {
-  RectMapInitData,
-  RectMapScheme,
-  RectMapSchemeRow
-} from '../../interfaces/map.interfaces'
+import {RectMapInitData, RectMapScheme} from '../../interfaces/map.interfaces'
 import {GameMap} from './index'
 import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
 import {HEX_TILE_RADIUS} from '../../../constants'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 
 export class RectMap extends GameMap {
+  private _edges: null | RectMapInitData = null
+
   constructor(
-    private _edges: RectMapInitData,
-    protected _initializedCb = () => {},
-    protected _hexRadius = HEX_TILE_RADIUS
+    protected _mapScheme: RectMapScheme,
+    protected _hexRadius = HEX_TILE_RADIUS,
+    protected _initializedCb = () => {}
   ) {
     super(_hexRadius)
-
-    this.fillDefaultScheme()
+    this.fillMapEdges()
     this._initializedCb()
   }
 
@@ -27,12 +24,12 @@ export class RectMap extends GameMap {
   }
 
   public get widthInTiles() {
-    const {left, right} = this._edges
+    const {left, right} = this._edges!
     return right - left + 1
   }
 
   public get heightInTiles() {
-    const {top, bottom} = this._edges
+    const {top, bottom} = this._edges!
     return bottom - top + 1
   }
 
@@ -59,25 +56,19 @@ export class RectMap extends GameMap {
     return inRange(coords.q, Math.min(...arrOfQ), Math.max(...arrOfQ) + 1)
   }
 
-  private fillDefaultScheme() {
-    const {top, right, bottom, left} = this._edges
-    const coordsScheme: RectMapScheme = {}
+  public set mapScheme(scheme: RectMapScheme) {
+    this._mapScheme = scheme
+    this.fillMapEdges()
+  }
 
-    for (let r = top; r <= bottom; r++) {
-      const row: RectMapSchemeRow = {}
+  private fillMapEdges() {
+    const rows = Object.keys(this._mapScheme)
 
-      const r_offset = r >> 1 // Math.floor(r / 2)
-      for (let q = left - r_offset; q <= right - r_offset; q++) {
-        row[q] = {
-          landscapeType: 'GRASS_1',
-          rotationDeg: 0,
-          isReflected: false
-        }
-      }
-
-      coordsScheme[r] = row
+    this._edges = {
+      top: 0,
+      bottom: rows.length,
+      left: 0,
+      right: Object.keys(this._mapScheme[Number(rows[0])]).length
     }
-
-    this._mapScheme = coordsScheme
   }
 }

@@ -1,13 +1,11 @@
 import React, {useRef, useState, useEffect} from 'react'
 
 import {CanvasRefs, CanvasContexts} from '../../contexts/canvas/interfaces'
-import {Game} from '../../core/classes/Game'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasListeners} from '../../hooks/useCanvasListeners'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import * as UI from './styles'
-import {RectMap} from '../../core/classes/GameMap/RectMap'
 
 const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
@@ -98,7 +96,6 @@ const Canvas = () => {
 
     return () => {
       removeCanvasListeners()
-
     }
   }, [isCanvasInitialized, isLoading])
 
