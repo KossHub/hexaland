@@ -1,14 +1,14 @@
 import {
-  CanvasTemplatesScheme,
+  CanvasLandscapeTemplatesScheme,
   MapDrawnType
 } from '../../interfaces/hex.interfaces'
 import {getCanvasTemplate} from '../../utils/canvasTemplate.utils'
-import {LANDSCAPE_TYPES} from './constants'
+import {LANDSCAPE_TYPES, ROTATION_DEG} from './constants'
 import {DrawnTemplates} from '../DrawnTemplates'
 import {drawHexShape} from '../../utils/drawHexShape'
 
 export class LandscapeTemplates extends DrawnTemplates {
-  protected _scheme: CanvasTemplatesScheme<keyof typeof LANDSCAPE_TYPES> = {
+  protected _scheme: CanvasLandscapeTemplatesScheme = {
     detailed: {},
     simplified: {}
   }
@@ -18,33 +18,53 @@ export class LandscapeTemplates extends DrawnTemplates {
     this.fillTemplates(radius)
   }
 
+  private fillTemplate(
+    radius: number,
+    landscapeType: string,
+    schemeKey: string,
+    rotationDeg: number
+  ) {
+    const {canvas, ctx} = getCanvasTemplate(radius)
+    // assetPath or color
+    const value = LANDSCAPE_TYPES[landscapeType][schemeKey as MapDrawnType]
+
+    if (value) {
+      if (schemeKey === 'detailed') {
+        const size = radius * 2
+        const img = new Image(size, size)
+
+        img.src = `./assets/landscape/${value}`
+        img.onload = () => {
+          ctx.translate(size / 2, size / 2)
+          ctx.rotate((rotationDeg * Math.PI) / 180)
+          ctx.translate(-size / 2, -size / 2)
+          ctx.drawImage(img, 0, 0, size, size)
+        }
+      } else if (schemeKey === 'simplified') {
+        drawHexShape(ctx, radius)
+        ctx.fillStyle = value
+        ctx.fill()
+      }
+
+      const scheme = this._scheme[schemeKey as MapDrawnType]
+
+      if (!(landscapeType in scheme)) {
+        scheme[landscapeType] = {}
+      }
+
+      scheme[landscapeType][rotationDeg] = canvas
+    }
+  }
+
   protected fillTemplates(radius: number) {
     Object.keys(LANDSCAPE_TYPES).forEach((landscapeType) => {
       Object.keys(this._scheme).forEach((schemeKey) => {
-        const {canvas, ctx} = getCanvasTemplate(radius)
-        // assetPath or color
-        const value = LANDSCAPE_TYPES[landscapeType][schemeKey as MapDrawnType]
-
-        if (value) {
-          if (schemeKey === 'detailed') {
-            const size = radius * 2
-            const img = new Image(size, size)
-
-            img.src = `./assets/landscape/${value}`
-            img.onload = () => {
-              // TEMPLATE ROTATION
-              // templateCtx.translate( size / 2, size / 2 );
-              // templateCtx.rotate( random(0, 5) * 60 * Math.PI/180 );
-              // templateCtx.translate( -size / 2, -size / 2 );
-              ctx.drawImage(img, 0, 0, size, size)
-            }
-          } else if (schemeKey === 'simplified') {
-            drawHexShape(ctx, radius + 1) // + 1 to avoid gaps
-            ctx.fillStyle = value
-            ctx.fill()
-          }
-
-          this._scheme[schemeKey as MapDrawnType][landscapeType] = canvas
+        if (schemeKey === 'simplified') {
+          this.fillTemplate(radius, landscapeType, schemeKey, 0)
+        } else {
+          ROTATION_DEG.forEach((n) => {
+            this.fillTemplate(radius, landscapeType, schemeKey, n)
+          })
         }
       })
     })

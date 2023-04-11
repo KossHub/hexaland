@@ -69,9 +69,9 @@ export class RectMap extends GameMap {
       const r_offset = r >> 1 // Math.floor(r / 2)
       for (let q = left - r_offset; q <= right - r_offset; q++) {
         row[q] = {
-          landscape: 'GRASS_1',
+          landscapeType: 'GRASS_1',
           rotationDeg: 0,
-          reflected: false
+          isReflected: false
         }
       }
 

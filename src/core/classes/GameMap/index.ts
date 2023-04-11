@@ -8,6 +8,7 @@ import {
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex'
 import {
+  CanvasLandscapeTemplatesScheme,
   CanvasTemplatesScheme,
   MapDrawnType
 } from '../../interfaces/hex.interfaces'
@@ -15,17 +16,15 @@ import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 import {HexTileTemplates} from '../HexTileTemplates'
 import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
-import {LANDSCAPE_TYPES} from '../LandscapeTemplates/constants'
 import {LandscapeTemplates} from '../LandscapeTemplates'
-import {SCALE} from "../../../constants";
+import {SCALE} from '../../../constants'
 
 export class GameMap {
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof HEX_TILE_TYPES
   > = null
-  protected _landscapeTemplatesScheme: null | CanvasTemplatesScheme<
-    keyof typeof LANDSCAPE_TYPES
-  > = null
+  protected _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
+    null
   protected _mapScheme: RectMapScheme = {}
   private _selectedHex: null | ShortCubeCoords = null
   private _hoveredHex: null | ShortCubeCoords = null
@@ -49,24 +48,40 @@ export class GameMap {
   private drawLandscape(
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
-    mapType: MapDrawnType = 'detailed'
+    landscapeType: string,
+    mapType: MapDrawnType = 'detailed',
+    rotationDeg: number = 0,
+    isReflected: boolean = false
   ) {
     if (!ctx) {
       return
     }
 
-    const canvasTemplate = this._landscapeTemplatesScheme?.[mapType]?.['GRASS_1']
+    const canvasTemplate =
+      this._landscapeTemplatesScheme?.[mapType]?.[landscapeType][rotationDeg]
 
     if (!canvasTemplate) {
       return
     }
 
     ctx.save()
-    ctx.drawImage(
-      canvasTemplate,
-      coords.x - this._hexRadius,
-      coords.y - this._hexRadius
-    )
+
+    if (isReflected) {
+      ctx.scale(-1, 1)
+      ctx.drawImage(
+        canvasTemplate,
+        (coords.x + this._hexRadius) * -1,
+        coords.y - this._hexRadius
+      )
+      ctx.scale(-1, 1)
+    } else {
+      ctx.drawImage(
+        canvasTemplate,
+        coords.x - this._hexRadius,
+        coords.y - this._hexRadius
+      )
+    }
+
     ctx.restore()
   }
 
@@ -211,9 +226,15 @@ export class GameMap {
           hexType = 'highlighted'
         }
 
+        const {landscapeType, rotationDeg, isReflected} =
+          this._mapScheme[coords.r][coords.q]
+
         return {
           hexType,
-          coords: hexTile.getAxialShiftedCoords(this._hexRadius, canvas.scale)
+          coords: hexTile.getAxialShiftedCoords(this._hexRadius, canvas.scale),
+          landscapeType,
+          rotationDeg,
+          isReflected
         }
       })
       .sort((a, b) => {
@@ -231,11 +252,19 @@ export class GameMap {
         }
         return 0
       })
-      .forEach(({coords, hexType}) => {
-        const mapType = canvas.scale < SCALE.SIMPLIFIED_MAP ? 'simplified' : 'detailed'
+      .forEach(({coords, hexType, landscapeType, rotationDeg, isReflected}) => {
+        const mapType =
+          canvas.scale < SCALE.SIMPLIFIED_MAP ? 'simplified' : 'detailed'
 
         this.drawHexTile(canvas.contexts.grid, coords, mapType, hexType)
-        this.drawLandscape(canvas.contexts.landscape, coords, mapType)
+        this.drawLandscape(
+          canvas.contexts.landscape,
+          coords,
+          landscapeType,
+          mapType,
+          rotationDeg,
+          isReflected
+        )
       })
   }
 

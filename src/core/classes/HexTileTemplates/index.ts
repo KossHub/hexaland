@@ -40,10 +40,15 @@ export class HexTileTemplates extends DrawnTemplates {
               }
               break
             }
-            case 'highlighted':
-            default: {
+            case 'highlighted': {
               ctx.strokeStyle = color
               ctx.lineWidth = 2
+              ctx.stroke()
+              break
+            }
+            default: {
+              ctx.strokeStyle = color
+              ctx.lineWidth = 1
               ctx.stroke()
               break
             }
