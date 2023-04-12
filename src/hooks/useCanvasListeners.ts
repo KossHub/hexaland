@@ -23,11 +23,14 @@ import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
+import {useMapContext} from '../contexts/map/useMapContext'
 
 export const useCanvasListeners = (
   canvas: CanvasContextState,
   mapState: MapContextState
 ) => {
+  //   const m = useMapContext()
+
   const mouseDownInitPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const mousePrevPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const isMouseButtonPressed = useRef(false)
@@ -39,12 +42,13 @@ export const useCanvasListeners = (
   const prevTouchesDistance = useRef(0)
   const centerHexCoords = useRef<ShortCubeCoords>(ZERO_SHORT_CUBE_COORDS)
 
-  // const hoveredHex = useRef<null | ShortCubeCoords>(null)
-  // const selectedHex = useRef<null | ShortCubeCoords>(null)
-  // useEffect(() => {
-  //   hoveredHex.current = mapState.hoveredHex
-  //   selectedHex.current = mapState.selectedHex
-  // }, [mapState.hoveredHex, mapState.selectedHex])
+  // FIXME: workaround to use actual values in drawCanvas func
+  const hoveredHex = useRef<null | ShortCubeCoords>(null)
+  const selectedHex = useRef<null | ShortCubeCoords>(null)
+  useEffect(() => {
+    hoveredHex.current = mapState.hoveredHex
+    selectedHex.current = mapState.selectedHex
+  }, [mapState.hoveredHex, mapState.selectedHex])
 
   useEffect(() => {
     return () => {
@@ -91,14 +95,14 @@ export const useCanvasListeners = (
     })
   }
 
-  const drawCanvas = useCallback(() => {
+  const drawCanvas = () => {
     if (canvas.wrapperRef && mapState?.map) {
       clearMap()
       mapState.map.drawHexTiles(
         canvas,
         centerHexCoords.current,
-        mapState.hoveredHex,
-        mapState.selectedHex
+        hoveredHex.current,
+        selectedHex.current
       )
       setTimeout(() => {
         requestAnimationFrame(drawCanvas)
@@ -107,7 +111,7 @@ export const useCanvasListeners = (
       clearTimeout(drawTimeoutId.current)
       drawTimeoutId.current = null
     }
-  }, [mapState.hoveredHex, mapState.selectedHex])
+  }
 
   const getMapEdgesInPixels = (): MapEdgesInPixels => ({
     top: canvas.originOffset.y,
@@ -399,28 +403,26 @@ export const useCanvasListeners = (
     initTouch.current = null
   }, [setSelectedHex])
 
-  const mouseWheelEvent = useCallback(
-    (event: WheelEvent) => {
-      event.preventDefault() // TODO: Check if all preventDefault required on this page
+  const mouseWheelEvent = useCallback((event: WheelEvent) => {
+    event.preventDefault() // TODO: Check if all preventDefault required on this page
 
-      const {offsetX, offsetY, deltaY} = event
-      // TODO: possible point to optimize - use limited length after dot scale value
-      const delta = deltaY < 0 ? 1.1 : 1 / 1.1
+    const {offsetX, offsetY, deltaY} = event
+    // TODO: possible point to optimize - use limited length after dot scale value
+    const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
-      scaleAt({x: offsetX, y: offsetY}, delta)
+    scaleAt({x: offsetX, y: offsetY}, delta)
 
-      // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
-      if (mapState.hoveredHex) {
-        setHoveredHex({x: offsetX, y: offsetY})
-      }
+    // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
+    // if (mapState.hoveredHex) {
+    //   setHoveredHex({x: offsetX, y: offsetY})
+    // }
 
-      updateCenterHex()
-    },
-    [mapState.hoveredHex]
-  )
+    updateCenterHex()
+  }, [])
 
   useEffect(() => {
-    if (!canvas.wrapperRef) {
+    console.log('ADD LISTENERS', !!canvas.wrapperRef, !!mapState.map)
+    if (!canvas.wrapperRef || !mapState.map) {
       return
     }
 
@@ -444,6 +446,7 @@ export const useCanvasListeners = (
     window.addEventListener('resize', onResize, {passive: true})
 
     return () => {
+      console.log('REMOVE _LISTENERS', !!canvas.wrapperRef)
       if (!canvas.wrapperRef) {
         return
       }
@@ -461,7 +464,8 @@ export const useCanvasListeners = (
       window.removeEventListener('resize', onResize)
     }
   }, [
-    drawCanvas,
+    canvas.wrapperRef,
+    mapState.map,
     mouseEvent,
     onTouchStart,
     onTouchMove,

@@ -34,19 +34,19 @@ const MapEditorPage = () => {
 
   const handleReflect = () => {
     console.log(':::CLICK:::', mapState?.map, mapState, canvas)
-    if (!mapState.selectedHex) {
-      return
-    }
-    const {r, q} = mapState.selectedHex
-
-    const hexInScheme = mapState.map?.mapScheme?.[r]?.[q]
-
-    if (!hexInScheme) {
-      throw new Error(`q:${q}, r:${r} hex not found in scheme`)
-      return
-    }
-
-    hexInScheme.isReflected = !hexInScheme.isReflected
+    // if (!mapState.selectedHex) {
+    //   return
+    // }
+    // const {r, q} = mapState.selectedHex
+    //
+    // const hexInScheme = mapState.map?.mapScheme?.[r]?.[q]
+    //
+    // if (!hexInScheme) {
+    //   throw new Error(`q:${q}, r:${r} hex not found in scheme`)
+    //   return
+    // }
+    //
+    // hexInScheme.isReflected = !hexInScheme.isReflected
   }
 
   const handleRotateLeft = () => {}
@@ -114,6 +114,7 @@ const MapEditorPage = () => {
       left: 0,
       right: Number(width) - 1
     })
+
     mapState.map = new RectMap(mapScheme)
     canvas.originOffset.x = 0
     canvas.originOffset.y = 0
@@ -165,7 +166,7 @@ const MapEditorPage = () => {
           >
             <RotateLeftRoundedIcon />
           </IconButton>
-          <IconButton onClick={handleReflect} disabled={!mapState.selectedHex}>
+          <IconButton onClick={handleReflect}>
             <FlipRoundedIcon />
           </IconButton>
           <IconButton

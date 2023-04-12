@@ -1,7 +1,7 @@
 import React, {createContext, useRef, PropsWithChildren, useState} from 'react'
 
 import {MapContextState} from './interfaces'
-import {RectMap} from "../../core/classes/GameMap/RectMap";
+import {RectMap} from '../../core/classes/GameMap/RectMap'
 
 export const MapContext = createContext<null | MapContextState>(null)
 

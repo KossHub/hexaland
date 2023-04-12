@@ -66,9 +66,9 @@ export class RectMap extends GameMap {
 
     this._edges = {
       top: 0,
-      bottom: rows.length,
+      bottom: rows.length - 1,
       left: 0,
-      right: Object.keys(this._mapScheme[Number(rows[0])]).length
+      right: Object.keys(this._mapScheme[Number(rows[0])]).length - 1
     }
   }
 }
