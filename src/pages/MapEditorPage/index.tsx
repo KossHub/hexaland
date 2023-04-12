@@ -17,7 +17,7 @@ import {isJSON} from '../../utils/checker'
 import {getDefaultMapScheme} from '../../core/utils/canvasTemplate.utils'
 import {SIZE_LIMIT} from './constants'
 import * as UI from './styles'
-
+// TODO mapState.map => mapState.map.current in all project
 const MapEditorPage = () => {
   const canvas = useCanvasContext()
   const mapState = useMapContext()
@@ -30,17 +30,26 @@ const MapEditorPage = () => {
 
   const fillEmptyTilesWithDefaultValue = () => {}
 
-  const handleRotateRight = () => {
-    console.log('ROT >>')
-  }
+  const handleRotateRight = () => {}
 
   const handleReflect = () => {
-    console.log('REF ::')
+    console.log(':::CLICK:::', mapState?.map, mapState, canvas)
+    if (!mapState.selectedHex) {
+      return
+    }
+    const {r, q} = mapState.selectedHex
+
+    const hexInScheme = mapState.map?.mapScheme?.[r]?.[q]
+
+    if (!hexInScheme) {
+      throw new Error(`q:${q}, r:${r} hex not found in scheme`)
+      return
+    }
+
+    hexInScheme.isReflected = !hexInScheme.isReflected
   }
 
-  const handleRotateLeft = () => {
-    console.log('ROT <<')
-  }
+  const handleRotateLeft = () => {}
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()

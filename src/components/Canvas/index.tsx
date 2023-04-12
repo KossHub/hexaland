@@ -11,7 +11,7 @@ const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
   const canvas = useCanvasContext()
   const mapState = useMapContext()
-
+  console.log('>>CANVAS INDEX<<', mapState?.map)
   const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
     canvas,
     mapState

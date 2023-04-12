@@ -231,21 +231,20 @@ export const useCanvasListeners = (
     mapState.setHoveredHex(newHoveredHex)
   }
 
-  const setSelectedHex =
-    (mousePosition: null | AxialCoords) => {
-      if (!mapState.map || canvas.scale < SCALE.SIMPLIFIED_MAP) {
-        return
-      }
-
-      const hexCoords = getHexCubeCoords(mousePosition)
-      const newSelectedHex =
-        hexCoords &&
-        mapState.map.doesHexExist(hexCoords) &&
-        isEqual(hexCoords, selectedHex.current)
-          ? null
-          : hexCoords
-      mapState.setSelectedHex(newSelectedHex)
+  const setSelectedHex = (mousePosition: null | AxialCoords) => {
+    if (!mapState.map || canvas.scale < SCALE.SIMPLIFIED_MAP) {
+      return
     }
+
+    const hexCoords = getHexCubeCoords(mousePosition)
+    const newSelectedHex =
+      hexCoords &&
+      mapState.map.doesHexExist(hexCoords) &&
+      !isEqual(hexCoords, selectedHex.current)
+        ? hexCoords
+        : null
+    mapState.setSelectedHex(newSelectedHex)
+  }
 
   const onResize = useCallback(() => {
     if (!canvas.wrapperRef) {
@@ -266,60 +265,57 @@ export const useCanvasListeners = (
     updateCenterHex()
   }, [])
 
-  const mouseEvent = useCallback(
-    (event: MouseEvent) => {
-      if (!mapState.map) {
-        return
-      }
+  const mouseEvent = useCallback((event: MouseEvent) => {
+    if (!mapState.map) {
+      return
+    }
 
-      if (event.type === 'mousedown') {
-        mouseDownInitPos.current = {
-          x: event.offsetX,
-          y: event.offsetY
-        }
-        isMouseButtonPressed.current = true
-      }
-
-      if (event.type === 'mouseup' || event.type === 'mouseout') {
-        isMouseButtonPressed.current = false
-      }
-
-      if (event.type === 'mouseout') {
-        setHoveredHex(null)
-      }
-
-      if (isMouseButtonPressed.current) {
-        moveOffset({
-          x: event.offsetX - mousePrevPos.current.x,
-          y: event.offsetY - mousePrevPos.current.y
-        })
-        updateCenterHex()
-      }
-
-      const isOffsetWithinAcceptable =
-        Math.abs(mouseDownInitPos.current.x - event.offsetX) <=
-          ACCEPTABLE_CLICK_OFFSET_PX &&
-        Math.abs(mouseDownInitPos.current.y - event.offsetY) <=
-          ACCEPTABLE_CLICK_OFFSET_PX
-
-      if (event.type === 'mouseup' && isOffsetWithinAcceptable) {
-        setSelectedHex({
-          x: mouseDownInitPos.current.x,
-          y: mouseDownInitPos.current.y
-        })
-      }
-
-      if (event.type === 'mousemove') {
-        setHoveredHex({x: event.offsetX, y: event.offsetY})
-      }
-
-      mousePrevPos.current = {
+    if (event.type === 'mousedown') {
+      mouseDownInitPos.current = {
         x: event.offsetX,
         y: event.offsetY
       }
-    },
-    []
-  )
+      isMouseButtonPressed.current = true
+    }
+
+    if (event.type === 'mouseup' || event.type === 'mouseout') {
+      isMouseButtonPressed.current = false
+    }
+
+    if (event.type === 'mouseout') {
+      setHoveredHex(null)
+    }
+
+    if (isMouseButtonPressed.current) {
+      moveOffset({
+        x: event.offsetX - mousePrevPos.current.x,
+        y: event.offsetY - mousePrevPos.current.y
+      })
+      updateCenterHex()
+    }
+
+    const isOffsetWithinAcceptable =
+      Math.abs(mouseDownInitPos.current.x - event.offsetX) <=
+        ACCEPTABLE_CLICK_OFFSET_PX &&
+      Math.abs(mouseDownInitPos.current.y - event.offsetY) <=
+        ACCEPTABLE_CLICK_OFFSET_PX
+
+    if (event.type === 'mouseup' && isOffsetWithinAcceptable) {
+      setSelectedHex({
+        x: mouseDownInitPos.current.x,
+        y: mouseDownInitPos.current.y
+      })
+    }
+
+    if (event.type === 'mousemove') {
+      setHoveredHex({x: event.offsetX, y: event.offsetY})
+    }
+
+    mousePrevPos.current = {
+      x: event.offsetX,
+      y: event.offsetY
+    }
+  }, [])
 
   const onTouchStart = useCallback((event: TouchEvent) => {
     event.preventDefault()
@@ -401,25 +397,22 @@ export const useCanvasListeners = (
     initTouch.current = null
   }, [setSelectedHex])
 
-  const mouseWheelEvent = useCallback(
-    (event: WheelEvent) => {
-      event.preventDefault() // TODO: Check if all preventDefault required on this page
+  const mouseWheelEvent = useCallback((event: WheelEvent) => {
+    event.preventDefault() // TODO: Check if all preventDefault required on this page
 
-      const {offsetX, offsetY, deltaY} = event
-      // TODO: possible point to optimize - use limited length after dot scale value
-      const delta = deltaY < 0 ? 1.1 : 1 / 1.1
+    const {offsetX, offsetY, deltaY} = event
+    // TODO: possible point to optimize - use limited length after dot scale value
+    const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
-      scaleAt({x: offsetX, y: offsetY}, delta)
+    scaleAt({x: offsetX, y: offsetY}, delta)
 
-      // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
-      if (hoveredHex.current) {
-        setHoveredHex({x: offsetX, y: offsetY})
-      }
+    // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
+    if (hoveredHex.current) {
+      setHoveredHex({x: offsetX, y: offsetY})
+    }
 
-      updateCenterHex()
-    },
-    []
-  )
+    updateCenterHex()
+  }, [])
 
   const addCanvasListeners = useCallback(() => {
     if (!canvas.wrapperRef) {

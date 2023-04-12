@@ -4,8 +4,8 @@ import {LANDSCAPE_TYPES} from '../classes/LandscapeTemplates/constants'
 export interface RectMapSchemeRow {
   [key: CubeCoords['q']]: {
     landscapeType: keyof typeof LANDSCAPE_TYPES
-    rotationDeg?: number
-    isReflected?: boolean
+    rotationDeg: number
+    isReflected: boolean
   }
 }
 

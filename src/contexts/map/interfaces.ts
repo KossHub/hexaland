@@ -3,7 +3,7 @@ import {ShortCubeCoords} from "../canvas/interfaces";
 import React from "react";
 
 export interface MapContextState {
-  map: null | RectMap,
+  map: React.RefObject<null | RectMap>,
   selectedHex: null | ShortCubeCoords
   hoveredHex: null | ShortCubeCoords
   setSelectedHex: React.Dispatch<React.SetStateAction<null | ShortCubeCoords>>
