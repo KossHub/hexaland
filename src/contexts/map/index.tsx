@@ -13,14 +13,14 @@ const MapProvider: React.FC<PropsWithChildren> = (props) => {
   const [hoveredHex, setHoveredHex] =
     useState<MapContextState['hoveredHex']>(null)
 
-  const mapRef = useRef<null | RectMap>(null)
+  const mapRef = useRef<MapContextState['map']>(null)
 
   const contextValue: MapContextState = {
     selectedHex,
     hoveredHex,
     setSelectedHex,
     setHoveredHex,
-    map: mapRef
+    map: mapRef.current
   }
 
   return (

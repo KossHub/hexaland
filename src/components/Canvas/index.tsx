@@ -11,11 +11,8 @@ const Canvas = () => {
   const {enqueueSnackbar} = useSnackbar()
   const canvas = useCanvasContext()
   const mapState = useMapContext()
-  console.log('>>CANVAS INDEX<<', mapState?.map)
-  const {addCanvasListeners, removeCanvasListeners} = useCanvasListeners(
-    canvas,
-    mapState
-  )
+
+  useCanvasListeners(canvas, mapState)
 
   const wrapperRef = useRef<null | HTMLDivElement>(null)
   const canvasGridRef = useRef<null | HTMLCanvasElement>(null)
@@ -87,17 +84,17 @@ const Canvas = () => {
   //   setIsLoading(false)
   // }, [isCanvasInitialized])
 
-  useEffect(() => {
-    if (!isCanvasInitialized || isLoading) {
-      return
-    }
-
-    addCanvasListeners()
-
-    return () => {
-      removeCanvasListeners()
-    }
-  }, [isCanvasInitialized, isLoading])
+  // useEffect(() => {
+  //   if (!isCanvasInitialized || isLoading) {
+  //     return
+  //   }
+  //
+  //   addCanvasListeners()
+  //
+  //   return () => {
+  //     removeCanvasListeners()
+  //   }
+  // }, [isCanvasInitialized, isLoading])
 
   return (
     <UI.Wrapper square ref={wrapperRef} elevation={2}>
