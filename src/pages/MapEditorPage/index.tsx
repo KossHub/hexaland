@@ -1,23 +1,28 @@
-import React, {useEffect, useState} from 'react'
-import {isString} from 'lodash'
+import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import {isString, random} from 'lodash'
 import {Box, Button, IconButton, Typography} from '@mui/material'
 import {
   RotateRightRounded as RotateRightRoundedIcon,
   FlipRounded as FlipRoundedIcon,
-  RotateLeftRounded as RotateLeftRoundedIcon
+  RotateLeftRounded as RotateLeftRoundedIcon,
+  RestoreRounded as RestoreRoundedIcon,
+  ShuffleRounded as ShuffleRoundedIcon
 } from '@mui/icons-material'
 
 import Canvas from '../../components/Canvas'
 import TextField from '../../components/TextField'
 import {RectMap} from '../../core/classes/GameMap/RectMap'
+import {RectMapSchemeRow} from '../../core/interfaces/map.interfaces'
 import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {isJSON} from '../../utils/checker'
 import {getDefaultMapScheme} from '../../core/utils/canvasTemplate.utils'
 import {SIZE_LIMIT} from './constants'
+import {ROTATION_DEG} from '../../core/classes/LandscapeTemplates/constants'
 import * as UI from './styles'
-// TODO mapState.map => mapState.map.current in all project
+import Tooltip from '../../components/Tooltip'
+
 const MapEditorPage = () => {
   const canvas = useCanvasContext()
   const mapState = useMapContext()
@@ -27,29 +32,82 @@ const MapEditorPage = () => {
   const [height, setHeight] = useState(10)
   const [filename, setFilename] = useState('')
   const [fileData, setFileData] = useState<null | string>(null)
+  const [selectedHexInScheme, setSelectedHexInScheme] = useState<
+    null | RectMapSchemeRow[keyof RectMapSchemeRow]
+  >(null)
+
+  const [, triggerRender] = useState({})
 
   const fillEmptyTilesWithDefaultValue = () => {}
 
-  const handleRotateRight = () => {}
+  const isSelectedHexDisabled = useMemo(() => {
+    if (!selectedHexInScheme) {
+      return true
+    }
 
-  const handleReflect = () => {
-    console.log(':::CLICK:::', mapState?.map, mapState, canvas)
-    // if (!mapState.selectedHex) {
-    //   return
-    // }
-    // const {r, q} = mapState.selectedHex
-    //
-    // const hexInScheme = mapState.map?.mapScheme?.[r]?.[q]
-    //
-    // if (!hexInScheme) {
-    //   throw new Error(`q:${q}, r:${r} hex not found in scheme`)
-    //   return
-    // }
-    //
-    // hexInScheme.isReflected = !hexInScheme.isReflected
+    return (
+      selectedHexInScheme.rotationDeg === 0 && !selectedHexInScheme.isReflected
+    )
+  }, [selectedHexInScheme?.rotationDeg, selectedHexInScheme?.isReflected])
+
+  const handleRotateRight = () => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    const delta = selectedHexInScheme.isReflected ? 300 : 60
+
+    selectedHexInScheme.rotationDeg =
+      (selectedHexInScheme.rotationDeg + delta) % 360
+
+    triggerRender({})
   }
 
-  const handleRotateLeft = () => {}
+  const handleRotateLeft = () => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    const delta = selectedHexInScheme.isReflected ? 60 : 300
+
+    selectedHexInScheme.rotationDeg =
+      (selectedHexInScheme.rotationDeg + delta) % 360
+
+    triggerRender({})
+  }
+
+  const handleReflect = () => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    selectedHexInScheme.isReflected = !selectedHexInScheme.isReflected
+
+    triggerRender({})
+  }
+
+  const handleResetTransform = () => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    selectedHexInScheme.rotationDeg = 0
+    selectedHexInScheme.isReflected = false
+
+    triggerRender({})
+  }
+
+  const handleSetRandomTransform = useCallback(() => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    selectedHexInScheme.isReflected = Boolean(random(1))
+    selectedHexInScheme.rotationDeg =
+      ROTATION_DEG[random(ROTATION_DEG.length - 1)]
+
+    triggerRender({})
+  }, [selectedHexInScheme])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
@@ -85,7 +143,7 @@ const MapEditorPage = () => {
   }
 
   const handleSave = () => {
-    if (!mapState?.map?.mapScheme) {
+    if (!mapState.map?.current?.mapScheme) {
       enqueueSnackbar('Не удалось сохранить файл', {
         variant: 'error',
         anchorOrigin: {horizontal: 'right', vertical: 'bottom'}
@@ -97,7 +155,7 @@ const MapEditorPage = () => {
     el.setAttribute(
       'href',
       `data:text/plain;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(mapState.map.mapScheme)
+        JSON.stringify(mapState.map.current.mapScheme)
       )}`
     )
     el.setAttribute('download', filename)
@@ -115,10 +173,43 @@ const MapEditorPage = () => {
       right: Number(width) - 1
     })
 
-    mapState.map = new RectMap(mapScheme)
+    mapState.map.current = new RectMap(mapScheme)
     canvas.originOffset.x = 0
     canvas.originOffset.y = 0
   }, [width, height])
+
+  useEffect(() => {
+    if (!mapState.selectedHex) {
+      return
+    }
+
+    const {r, q} = mapState.selectedHex
+    const hexInScheme = mapState.map.current?.mapScheme?.[r]?.[q]
+
+    if (!hexInScheme) {
+      throw new Error(`q:${q}, r:${r} hex not found in scheme`)
+      setSelectedHexInScheme(null)
+    }
+
+    setSelectedHexInScheme(hexInScheme)
+  }, [mapState.selectedHex])
+
+  const handleKeyup = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'r') {
+        handleSetRandomTransform()
+      }
+    },
+    [handleSetRandomTransform]
+  )
+
+  useEffect(() => {
+    window.addEventListener('keyup', handleKeyup)
+
+    return () => {
+      window.removeEventListener('keyup', handleKeyup)
+    }
+  }, [handleKeyup])
 
   return (
     <UI.Wrapper maxWidth="xl">
@@ -130,7 +221,7 @@ const MapEditorPage = () => {
           maxWidth: '320px',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between'
+          justifyContent: 'space-evenly'
         }}
       >
         <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mb: 2}}>
@@ -160,21 +251,47 @@ const MapEditorPage = () => {
         </Box>
 
         <Box sx={{display: 'flex', justifyContent: 'space-evenly'}}>
-          <IconButton
-            onClick={handleRotateLeft}
-            disabled={!mapState.selectedHex}
-          >
-            <RotateLeftRoundedIcon />
-          </IconButton>
-          <IconButton onClick={handleReflect}>
-            <FlipRoundedIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleRotateRight}
-            disabled={!mapState.selectedHex}
-          >
-            <RotateRightRoundedIcon />
-          </IconButton>
+          <Tooltip title="Сбросить">
+            <IconButton
+              onClick={handleResetTransform}
+              disabled={isSelectedHexDisabled}
+            >
+              <RestoreRoundedIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Случайная трансформация">
+            <IconButton
+              onClick={handleSetRandomTransform}
+              disabled={!selectedHexInScheme}
+            >
+              <ShuffleRoundedIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Отразить по вертикали">
+            <IconButton onClick={handleReflect} disabled={!selectedHexInScheme}>
+              <FlipRoundedIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Против часовой стрелки">
+            <IconButton
+              onClick={handleRotateLeft}
+              disabled={!selectedHexInScheme}
+            >
+              <RotateLeftRoundedIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="По часовой стрелке">
+            <IconButton
+              onClick={handleRotateRight}
+              disabled={!selectedHexInScheme}
+            >
+              <RotateRightRoundedIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Typography mb={2} mt="auto">

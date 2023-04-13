@@ -19,7 +19,36 @@ import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {LandscapeTemplates} from '../LandscapeTemplates'
 import {SCALE} from '../../../constants'
 
+// TODO: Use only RectMap without inheritance from GameMap
 export class GameMap {
+  // TODO: Move all draws to a separate class
+
+// interface IMapChangeListener {
+//   onChange();
+// }
+//
+// class Map2DRenderer {
+//   selected = 2;
+//   subscribers: IMapChangeListener[] = [];
+//   setSelected(val) {
+//     this.selected = val;
+//     this.subscribers.forEach(each=>each.onChange());
+//   }
+//   subscribe(listener: IMapChangeListener) {
+//     this.subscribers.push(listener);
+//   }
+// }
+//
+// let C = ()=>{
+//   let [frame, setFrame] = useState(0);
+//   let map: Map2DRenderer = useContext<Map2DRenderer>(Map);
+//   useEffect(()=>{
+//     map.subscribe({
+//       onChange: ()=>setFrame(s=>s+1),
+//     });
+//   }, []);
+// };
+
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof HEX_TILE_TYPES
   > = null

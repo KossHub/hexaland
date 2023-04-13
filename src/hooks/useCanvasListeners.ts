@@ -96,9 +96,9 @@ export const useCanvasListeners = (
   }
 
   const drawCanvas = () => {
-    if (canvas.wrapperRef && mapState?.map) {
+    if (canvas.wrapperRef && mapState.map?.current) {
       clearMap()
-      mapState.map.drawHexTiles(
+      mapState.map.current.drawHexTiles(
         canvas,
         centerHexCoords.current,
         hoveredHex.current,
@@ -117,18 +117,18 @@ export const useCanvasListeners = (
     top: canvas.originOffset.y,
     right:
       canvas.originOffset.x +
-      mapState.map!.widthInPixels * canvas.scale +
+      mapState.map.current!.widthInPixels * canvas.scale +
       2 * GAME_MAP_BORDER_SIZE,
     bottom:
       canvas.originOffset.y +
-      mapState.map!.heightInPixels * canvas.scale +
+      mapState.map.current!.heightInPixels * canvas.scale +
       2 * GAME_MAP_BORDER_SIZE,
     left: canvas.originOffset.x
   })
 
   /** returns coords even out of game mar area */
   const getHexCubeCoords = (mousePosition: null | AxialCoords) => {
-    if (!mapState.map) {
+    if (!mapState.map.current) {
       return null
     }
 
@@ -140,15 +140,15 @@ export const useCanvasListeners = (
     const shiftedX =
       mousePosition.x / canvas.scale - // mouse origin
       canvas.originOffset.x / canvas.scale - // offset
-      (Math.sqrt(3) * mapState.map.hexRadius) / 2 - // projecting hex part
+      (Math.sqrt(3) * mapState.map.current.hexRadius) / 2 - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
     const shiftedY =
       mousePosition.y / canvas.scale - // mouse origin
       canvas.originOffset.y / canvas.scale - // offset
-      mapState.map.hexRadius - // projecting hex part
+      mapState.map.current.hexRadius - // projecting hex part
       GAME_MAP_BORDER_SIZE / canvas.scale // border
 
-    return mapState.map.getHexCoords({
+    return mapState.map.current.getHexCoords({
       x: shiftedX,
       y: shiftedY
     })
@@ -223,26 +223,28 @@ export const useCanvasListeners = (
   }
 
   const setHoveredHex = (mousePosition: null | AxialCoords) => {
-    if (!mapState.map) {
+    if (!mapState.map.current) {
       return
     }
 
     const hexCoords = getHexCubeCoords(mousePosition)
     const newHoveredHex =
-      hexCoords && mapState.map.doesHexExist(hexCoords) ? hexCoords : null
+      hexCoords && mapState.map.current.doesHexExist(hexCoords)
+        ? hexCoords
+        : null
 
     mapState.setHoveredHex(newHoveredHex)
   }
 
   const setSelectedHex = useCallback((mousePosition: null | AxialCoords) => {
-    if (!mapState.map || canvas.scale < SCALE.SIMPLIFIED_MAP) {
+    if (!mapState.map.current || canvas.scale < SCALE.SIMPLIFIED_MAP) {
       return
     }
 
     const hexCoords = getHexCubeCoords(mousePosition)
-    const newSelectedHex = mapState.setSelectedHex((prev) =>
+    mapState.setSelectedHex((prev) =>
       hexCoords &&
-      mapState.map?.doesHexExist(hexCoords) &&
+      mapState.map.current?.doesHexExist(hexCoords) &&
       !isEqual(hexCoords, prev)
         ? hexCoords
         : null
@@ -270,7 +272,7 @@ export const useCanvasListeners = (
 
   const mouseEvent = useCallback(
     (event: MouseEvent) => {
-      if (!mapState.map) {
+      if (!mapState.map.current) {
         return
       }
 
@@ -421,10 +423,11 @@ export const useCanvasListeners = (
   }, [])
 
   useEffect(() => {
-    console.log('ADD LISTENERS', !!canvas.wrapperRef, !!mapState.map)
-    if (!canvas.wrapperRef || !mapState.map) {
+    if (!canvas.wrapperRef || !mapState.map.current) {
       return
     }
+
+    // TODO: define all handlers
 
     updateCenterHex()
     requestAnimationFrame(drawCanvas)
@@ -446,7 +449,6 @@ export const useCanvasListeners = (
     window.addEventListener('resize', onResize, {passive: true})
 
     return () => {
-      console.log('REMOVE _LISTENERS', !!canvas.wrapperRef)
       if (!canvas.wrapperRef) {
         return
       }
@@ -464,8 +466,6 @@ export const useCanvasListeners = (
       window.removeEventListener('resize', onResize)
     }
   }, [
-    canvas.wrapperRef,
-    mapState.map,
     mouseEvent,
     onTouchStart,
     onTouchMove,
