@@ -23,31 +23,31 @@ import {SCALE} from '../../../constants'
 export class GameMap {
   // TODO: Move all draws to a separate class
 
-// interface IMapChangeListener {
-//   onChange();
-// }
-//
-// class Map2DRenderer {
-//   selected = 2;
-//   subscribers: IMapChangeListener[] = [];
-//   setSelected(val) {
-//     this.selected = val;
-//     this.subscribers.forEach(each=>each.onChange());
-//   }
-//   subscribe(listener: IMapChangeListener) {
-//     this.subscribers.push(listener);
-//   }
-// }
-//
-// let C = ()=>{
-//   let [frame, setFrame] = useState(0);
-//   let map: Map2DRenderer = useContext<Map2DRenderer>(Map);
-//   useEffect(()=>{
-//     map.subscribe({
-//       onChange: ()=>setFrame(s=>s+1),
-//     });
-//   }, []);
-// };
+  // interface IMapChangeListener {
+  //   onChange();
+  // }
+  //
+  // class Map2DRenderer {
+  //   selected = 2;
+  //   subscribers: IMapChangeListener[] = [];
+  //   setSelected(val) {
+  //     this.selected = val;
+  //     this.subscribers.forEach(each=>each.onChange());
+  //   }
+  //   subscribe(listener: IMapChangeListener) {
+  //     this.subscribers.push(listener);
+  //   }
+  // }
+  //
+  // let C = ()=>{
+  //   let [frame, setFrame] = useState(0);
+  //   let map: Map2DRenderer = useContext<Map2DRenderer>(Map);
+  //   useEffect(()=>{
+  //     map.subscribe({
+  //       onChange: ()=>setFrame(s=>s+1),
+  //     });
+  //   }, []);
+  // };
 
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof HEX_TILE_TYPES
@@ -87,7 +87,9 @@ export class GameMap {
     }
 
     const canvasTemplate =
-      this._landscapeTemplatesScheme?.[mapType]?.[landscapeType][rotationDeg]
+      this._landscapeTemplatesScheme?.[mapType]?.[landscapeType][
+        mapType === 'detailed' ? rotationDeg : 0
+      ]
 
     if (!canvasTemplate) {
       return

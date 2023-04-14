@@ -20,7 +20,7 @@ const MapProvider: React.FC<PropsWithChildren> = (props) => {
     hoveredHex,
     setSelectedHex,
     setHoveredHex,
-    map: mapRef
+    mapRef
   }
 
   return (

@@ -1,6 +1,13 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import React, {
+  ChangeEvent,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from 'react'
 import {isString, random} from 'lodash'
-import {Box, Button, IconButton, Typography} from '@mui/material'
+import {Box, Button, Divider, IconButton, Typography} from '@mui/material'
 import {
   RotateRightRounded as RotateRightRoundedIcon,
   FlipRounded as FlipRoundedIcon,
@@ -11,27 +18,37 @@ import {
 
 import Canvas from '../../components/Canvas'
 import TextField from '../../components/TextField'
+import Tooltip from '../../components/Tooltip'
+import LandscapeButtons from '../../components/LandscapeButtons'
 import {RectMap} from '../../core/classes/GameMap/RectMap'
-import {RectMapSchemeRow} from '../../core/interfaces/map.interfaces'
+import {
+  RectMapScheme,
+  RectMapSchemeRow
+} from '../../core/interfaces/map.interfaces'
 import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {isJSON} from '../../utils/checker'
 import {getDefaultMapScheme} from '../../core/utils/canvasTemplate.utils'
 import {SIZE_LIMIT} from './constants'
-import {ROTATION_DEG} from '../../core/classes/LandscapeTemplates/constants'
+import {
+  LANDSCAPE_TYPES,
+  ROTATION_DEG
+} from '../../core/classes/LandscapeTemplates/constants'
 import * as UI from './styles'
-import Tooltip from '../../components/Tooltip'
+import {getMapEdges} from '../../core/utils/mapCalculated'
 
 const MapEditorPage = () => {
   const canvas = useCanvasContext()
   const mapState = useMapContext()
   const {enqueueSnackbar} = useSnackbar()
 
+  const fileInputRef = useRef<null | HTMLInputElement>(null)
+
   const [width, setWidth] = useState(10)
   const [height, setHeight] = useState(10)
+  const [isResizeRequired, setIsResizeRequired] = useState(true)
   const [filename, setFilename] = useState('')
-  const [fileData, setFileData] = useState<null | string>(null)
   const [selectedHexInScheme, setSelectedHexInScheme] = useState<
     null | RectMapSchemeRow[keyof RectMapSchemeRow]
   >(null)
@@ -109,6 +126,20 @@ const MapEditorPage = () => {
     triggerRender({})
   }, [selectedHexInScheme])
 
+  const handleSelectLandscapeType = (type: keyof typeof LANDSCAPE_TYPES) => {
+    if (!selectedHexInScheme) {
+      return
+    }
+
+    selectedHexInScheme.landscapeType = type
+
+    triggerRender({})
+  }
+
+  const handleSetRandomGRASS = () => {
+    handleSelectLandscapeType(Object.keys(LANDSCAPE_TYPES)[random(3)])
+  }
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault()
 
@@ -136,14 +167,25 @@ const MapEditorPage = () => {
       }
 
       setFilename(name)
-      setFileData(JSON.parse(result))
+
+      const mapScheme = JSON.parse(result)
+
+      const {bottom, right} = getMapEdges(mapScheme)
+
+      setWidth(right + 1)
+      setHeight(bottom + 1)
+      applyMapScheme(mapScheme)
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
 
     reader.readAsBinaryString(file)
   }
 
   const handleSave = () => {
-    if (!mapState.map?.current?.mapScheme) {
+    if (!mapState.mapRef?.current?.mapScheme) {
       enqueueSnackbar('Не удалось сохранить файл', {
         variant: 'error',
         anchorOrigin: {horizontal: 'right', vertical: 'bottom'}
@@ -155,7 +197,7 @@ const MapEditorPage = () => {
     el.setAttribute(
       'href',
       `data:text/plain;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(mapState.map.current.mapScheme)
+        JSON.stringify(mapState.mapRef.current.mapScheme)
       )}`
     )
     el.setAttribute('download', filename)
@@ -165,7 +207,17 @@ const MapEditorPage = () => {
     document.body.removeChild(el)
   }
 
+  const applyMapScheme = (mapScheme: RectMapScheme) => {
+    mapState.mapRef.current = new RectMap(mapScheme)
+    canvas.originOffset.x = 0
+    canvas.originOffset.y = 0
+  }
+
   useEffect(() => {
+    if (!isResizeRequired) {
+      return
+    }
+
     const mapScheme = getDefaultMapScheme({
       top: 0,
       bottom: Number(height) - 1,
@@ -173,18 +225,35 @@ const MapEditorPage = () => {
       right: Number(width) - 1
     })
 
-    mapState.map.current = new RectMap(mapScheme)
-    canvas.originOffset.x = 0
-    canvas.originOffset.y = 0
+    if (mapState.mapRef.current?.mapScheme) {
+      Object.keys(mapScheme).forEach((r) => {
+        Object.keys(mapScheme[Number(r)]).forEach((q) => {
+          const currentHex =
+            mapState.mapRef.current?.mapScheme[Number(r)]?.[Number(q)]
+
+          if (currentHex && mapScheme?.[Number(r)]?.[Number(q)]) {
+            mapScheme[Number(r)][Number(q)] = {...currentHex}
+          }
+        })
+      })
+    }
+
+    applyMapScheme(mapScheme)
+    setIsResizeRequired(false)
+  }, [width, height])
+
+  useEffect(() => {
+    mapState.setSelectedHex(null)
   }, [width, height])
 
   useEffect(() => {
     if (!mapState.selectedHex) {
+      setSelectedHexInScheme(null)
       return
     }
 
     const {r, q} = mapState.selectedHex
-    const hexInScheme = mapState.map.current?.mapScheme?.[r]?.[q]
+    const hexInScheme = mapState.mapRef.current?.mapScheme?.[r]?.[q]
 
     if (!hexInScheme) {
       throw new Error(`q:${q}, r:${r} hex not found in scheme`)
@@ -194,13 +263,25 @@ const MapEditorPage = () => {
     setSelectedHexInScheme(hexInScheme)
   }, [mapState.selectedHex])
 
+  const handleSetWidth = (event: ChangeEvent<HTMLInputElement>) => {
+    setWidth(Math.min(Number(event.target.value), SIZE_LIMIT))
+    setIsResizeRequired(true)
+  }
+
+  const handleSetHeight = (event: ChangeEvent<HTMLInputElement>) => {
+    setHeight(Math.min(Number(event.target.value), SIZE_LIMIT))
+    setIsResizeRequired(true)
+  }
+
   const handleKeyup = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === 'r') {
+        handleSetRandomGRASS()
+      } else if (event.key === 't') {
         handleSetRandomTransform()
       }
     },
-    [handleSetRandomTransform]
+    [handleSetRandomGRASS, handleSetRandomTransform]
   )
 
   useEffect(() => {
@@ -232,9 +313,7 @@ const MapEditorPage = () => {
             InputLabelProps={{shrink: true}}
             inputProps={{min: 1, max: SIZE_LIMIT}}
             value={width}
-            onChange={(event) =>
-              setWidth(Math.min(Number(event.target.value), SIZE_LIMIT))
-            }
+            onChange={handleSetWidth}
           />
           {' X '}
           <TextField
@@ -244,14 +323,12 @@ const MapEditorPage = () => {
             InputLabelProps={{shrink: true}}
             inputProps={{min: 1, max: SIZE_LIMIT}}
             value={height}
-            onChange={(event) =>
-              setHeight(Math.min(Number(event.target.value), SIZE_LIMIT))
-            }
+            onChange={handleSetHeight}
           />
         </Box>
 
-        <Box sx={{display: 'flex', justifyContent: 'space-evenly'}}>
-          <Tooltip title="Сбросить">
+        <Box sx={{display: 'flex', justifyContent: 'space-evenly', mb: 2}}>
+          <Tooltip title="Восстановить">
             <IconButton
               onClick={handleResetTransform}
               disabled={isSelectedHexDisabled}
@@ -260,7 +337,7 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Случайная трансформация">
+          <Tooltip title="Случайная трансформация (T)">
             <IconButton
               onClick={handleSetRandomTransform}
               disabled={!selectedHexInScheme}
@@ -294,13 +371,32 @@ const MapEditorPage = () => {
           </Tooltip>
         </Box>
 
-        <Typography mb={2} mt="auto">
-          {filename || 'файл не загружен'}
-        </Typography>
+        <Divider sx={{mb: 2}} />
+
+        <Box mb={2}>
+          <Tooltip title="Случайный ладншафт травы (R)">
+            <IconButton
+              onClick={handleSetRandomGRASS}
+              disabled={!selectedHexInScheme}
+            >
+              <ShuffleRoundedIcon />
+            </IconButton>
+          </Tooltip>
+          <LandscapeButtons onSelect={handleSelectLandscapeType} />
+        </Box>
+
+        <Divider sx={{mt: 'auto', mb: 2}} />
+
+        <Typography mb={2}>{filename || 'файл не загружен'}</Typography>
         <Box sx={{display: 'flex', gap: 1, width: '100%'}}>
           <Button variant="outlined" component="label" sx={{width: '100%'}}>
             Загрузить
-            <input hidden type="file" onChange={handleFileUpload} />
+            <input
+              hidden
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileUpload}
+            />
           </Button>
           <Button variant="contained" onClick={handleSave} sx={{width: '100%'}}>
             Сохранить

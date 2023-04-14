@@ -5,9 +5,10 @@ import {GameMap} from './index'
 import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
 import {HEX_TILE_RADIUS} from '../../../constants'
 import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
+import {getMapEdges} from '../../utils/mapCalculated'
 
 export class RectMap extends GameMap {
-  private _edges: null | RectMapInitData = null
+  private _edges: null | RectMapInitData = null // TODO: Rename to GameMapEdges
 
   constructor(
     protected _mapScheme: RectMapScheme,
@@ -62,13 +63,6 @@ export class RectMap extends GameMap {
   }
 
   private fillMapEdges() {
-    const rows = Object.keys(this._mapScheme)
-
-    this._edges = {
-      top: 0,
-      bottom: rows.length - 1,
-      left: 0,
-      right: Object.keys(this._mapScheme[Number(rows[0])]).length - 1
-    }
+    this._edges = getMapEdges(this._mapScheme)
   }
 }

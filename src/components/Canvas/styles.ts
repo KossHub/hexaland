@@ -19,7 +19,8 @@ export const Wrapper = styled(Paper)(({theme}) => ({
     // imageRendering: 'pixelated', '// FIXME: to use or not to use
 
     '&#canvasLandscape': {
-      zIndex: 2
+      zIndex: 2,
+      background: 'lightgray'
     },
 
     '&#canvasGrid': {
