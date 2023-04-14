@@ -3,6 +3,8 @@ import {
   RectMapScheme,
   RectMapSchemeRow
 } from '../interfaces/map.interfaces'
+import {LANDSCAPE_TYPES, ROTATION_DEG} from "../classes/LandscapeTemplates/constants";
+import {random} from "lodash";
 
 export const getCanvasTemplate = (
   radius: number
@@ -22,6 +24,12 @@ export const getCanvasTemplate = (
   }
 }
 
+const getRandomGrass = () => Object.keys(LANDSCAPE_TYPES)[random(3)]
+
+export const getRandomReflectedState = () => Boolean(random(1))
+
+export const getRandomRotation = () => ROTATION_DEG[random(ROTATION_DEG.length - 1)]
+
 export const getDefaultMapScheme = (edges: RectMapInitData) => {
   const {top, right, bottom, left} = edges
   const coordsScheme: RectMapScheme = {}
@@ -32,9 +40,9 @@ export const getDefaultMapScheme = (edges: RectMapInitData) => {
     const r_offset = r >> 1 // Math.floor(r / 2)
     for (let q = left - r_offset; q <= right - r_offset; q++) {
       row[q] = {
-        landscapeType: 'GRASS_1',
-        rotationDeg: 0,
-        isReflected: false
+        landscapeType: getRandomGrass(),
+        rotationDeg: getRandomRotation(),
+        isReflected: getRandomReflectedState()
       }
     }
 

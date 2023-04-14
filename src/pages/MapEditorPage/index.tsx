@@ -29,14 +29,16 @@ import {useMapContext} from '../../contexts/map/useMapContext'
 import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {isJSON} from '../../utils/checker'
-import {getDefaultMapScheme} from '../../core/utils/canvasTemplate.utils'
-import {SIZE_LIMIT} from './constants'
 import {
-  LANDSCAPE_TYPES,
-  ROTATION_DEG
-} from '../../core/classes/LandscapeTemplates/constants'
-import * as UI from './styles'
+  getDefaultMapScheme,
+  getRandomReflectedState,
+  getRandomRotation
+} from '../../core/utils/canvasTemplate.utils'
 import {getMapEdges} from '../../core/utils/mapCalculated'
+import {SIZE_LIMIT} from './constants'
+import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
+import * as UI from './styles'
+import {LandscapeButtonsWrapper} from './styles'
 
 const MapEditorPage = () => {
   const canvas = useCanvasContext()
@@ -119,9 +121,8 @@ const MapEditorPage = () => {
       return
     }
 
-    selectedHexInScheme.isReflected = Boolean(random(1))
-    selectedHexInScheme.rotationDeg =
-      ROTATION_DEG[random(ROTATION_DEG.length - 1)]
+    selectedHexInScheme.isReflected = getRandomReflectedState()
+    selectedHexInScheme.rotationDeg = getRandomRotation()
 
     triggerRender({})
   }, [selectedHexInScheme])
@@ -134,10 +135,6 @@ const MapEditorPage = () => {
     selectedHexInScheme.landscapeType = type
 
     triggerRender({})
-  }
-
-  const handleSetRandomGRASS = () => {
-    handleSelectLandscapeType(Object.keys(LANDSCAPE_TYPES)[random(3)])
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,13 +272,11 @@ const MapEditorPage = () => {
 
   const handleKeyup = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key === 'r') {
-        handleSetRandomGRASS()
-      } else if (event.key === 't') {
+      if (event.key === 't') {
         handleSetRandomTransform()
       }
     },
-    [handleSetRandomGRASS, handleSetRandomTransform]
+    [handleSetRandomTransform]
   )
 
   useEffect(() => {
@@ -373,17 +368,9 @@ const MapEditorPage = () => {
 
         <Divider sx={{mb: 2}} />
 
-        <Box mb={2}>
-          <Tooltip title="Случайный ладншафт травы (R)">
-            <IconButton
-              onClick={handleSetRandomGRASS}
-              disabled={!selectedHexInScheme}
-            >
-              <ShuffleRoundedIcon />
-            </IconButton>
-          </Tooltip>
+        <UI.LandscapeButtonsWrapper>
           <LandscapeButtons onSelect={handleSelectLandscapeType} />
-        </Box>
+        </UI.LandscapeButtonsWrapper>
 
         <Divider sx={{mt: 'auto', mb: 2}} />
 
@@ -403,6 +390,7 @@ const MapEditorPage = () => {
           </Button>
         </Box>
       </Box>
+
       <Canvas />
     </UI.Wrapper>
   )
