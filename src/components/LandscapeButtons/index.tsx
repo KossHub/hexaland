@@ -6,13 +6,13 @@ import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
 import Tooltip from '../Tooltip'
 
 const LandscapeButtons: React.FC<LandscapeButtonsProps> = (props) => {
-  const {onSelect} = props
+  const {active, onSelect} = props
 
   return (
     <>
       {Object.keys(LANDSCAPE_TYPES).map((type) => (
         <Tooltip key={type} title={type}>
-          <UI.ImageButton onClick={() => onSelect(type)}>
+          <UI.ImageButton onClick={() => onSelect(type)} isActive={active === type}>
             <UI.ImageSrc url={LANDSCAPE_TYPES[type].detailed as string} />
           </UI.ImageButton>
         </Tooltip>

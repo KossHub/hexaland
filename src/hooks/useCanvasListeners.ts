@@ -268,7 +268,11 @@ export const useCanvasListeners = (
   }
 
   useEffect(() => {
-    if (!canvas.wrapperRef || !mapState.mapRef.current) {
+    if (
+      !canvas.wrapperRef ||
+      !mapState.mapRef.current ||
+      !mapState.isInitialized
+    ) {
       return
     }
 
@@ -457,5 +461,5 @@ export const useCanvasListeners = (
       canvas.wrapperRef.removeEventListener('wheel', mouseWheelEvent)
       window.removeEventListener('resize', onResize)
     }
-  }, [])
+  }, [mapState.isInitialized])
 }

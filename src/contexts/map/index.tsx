@@ -12,6 +12,7 @@ const MapProvider: React.FC<PropsWithChildren> = (props) => {
     useState<MapContextState['selectedHex']>(null)
   const [hoveredHex, setHoveredHex] =
     useState<MapContextState['hoveredHex']>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const mapRef = useRef<null | RectMap>(null)
 
@@ -20,6 +21,8 @@ const MapProvider: React.FC<PropsWithChildren> = (props) => {
     hoveredHex,
     setSelectedHex,
     setHoveredHex,
+    isInitialized,
+    setIsInitialized,
     mapRef
   }
 

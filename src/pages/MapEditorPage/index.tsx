@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useState
 } from 'react'
-import {isString, random} from 'lodash'
+import {isString} from 'lodash'
 import {Box, Button, Divider, IconButton, Typography} from '@mui/material'
 import {
   RotateRightRounded as RotateRightRoundedIcon,
@@ -35,10 +35,9 @@ import {
   getRandomRotation
 } from '../../core/utils/canvasTemplate.utils'
 import {getMapEdges} from '../../core/utils/mapCalculated'
-import {SIZE_LIMIT} from './constants'
+import {SIZE_LIMIT, SNACKBAR_POSITION} from './constants'
 import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
 import * as UI from './styles'
-import {LandscapeButtonsWrapper} from './styles'
 
 const MapEditorPage = () => {
   const canvas = useCanvasContext()
@@ -129,12 +128,19 @@ const MapEditorPage = () => {
 
   const handleSelectLandscapeType = (type: keyof typeof LANDSCAPE_TYPES) => {
     if (!selectedHexInScheme) {
+      enqueueSnackbar('Не выбрано поле', {
+        variant: 'warning',
+        ...SNACKBAR_POSITION
+      })
       return
     }
 
-    selectedHexInScheme.landscapeType = type
-
-    triggerRender({})
+    if (selectedHexInScheme.landscapeType === type) {
+      handleRotateRight()
+    } else {
+      selectedHexInScheme.landscapeType = type
+      triggerRender({})
+    }
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,7 +164,8 @@ const MapEditorPage = () => {
 
       if (!isString(result) || !isJSON(result)) {
         enqueueSnackbar('Неверный формат файла', {
-          variant: 'error'
+          variant: 'error',
+          ...SNACKBAR_POSITION
         })
         return
       }
@@ -185,7 +192,7 @@ const MapEditorPage = () => {
     if (!mapState.mapRef?.current?.mapScheme) {
       enqueueSnackbar('Не удалось сохранить файл', {
         variant: 'error',
-        anchorOrigin: {horizontal: 'right', vertical: 'bottom'}
+        ...SNACKBAR_POSITION
       })
       return
     }
@@ -206,6 +213,7 @@ const MapEditorPage = () => {
 
   const applyMapScheme = (mapScheme: RectMapScheme) => {
     mapState.mapRef.current = new RectMap(mapScheme)
+    mapState.setIsInitialized(true)
     canvas.originOffset.x = 0
     canvas.originOffset.y = 0
   }
@@ -369,12 +377,12 @@ const MapEditorPage = () => {
         <Divider sx={{mb: 2}} />
 
         <UI.LandscapeButtonsWrapper>
-          <LandscapeButtons onSelect={handleSelectLandscapeType} />
+          <LandscapeButtons active={selectedHexInScheme?.landscapeType} onSelect={handleSelectLandscapeType} />
         </UI.LandscapeButtonsWrapper>
 
         <Divider sx={{mt: 'auto', mb: 2}} />
 
-        <Typography mb={2}>{filename || 'файл не загружен'}</Typography>
+        <Typography mb={2} sx={{userSelect: 'none'}}>{filename || 'файл не загружен'}</Typography>
         <Box sx={{display: 'flex', gap: 1, width: '100%'}}>
           <Button variant="outlined" component="label" sx={{width: '100%'}}>
             Загрузить

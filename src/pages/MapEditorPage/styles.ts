@@ -9,13 +9,12 @@ export const Wrapper = styled(Container)(({theme}) => ({
 export const LandscapeButtonsWrapper = styled(Box)(({theme}) => ({
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '0 4px',
   width: '100%',
   marginBottom: 16,
   overflow: 'auto',
   height: 'fit-content',
 
-  '& > button:nth-child(10n + 1)': {
-    marginLeft: 26
+  '& > button:nth-of-type(7n - 2)': {
+    marginLeft: 36
   }
 }))
