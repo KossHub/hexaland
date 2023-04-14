@@ -8,16 +8,17 @@ export const ImageButton = styled(ButtonBase)<ImageButtonStylesProps>(
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 72,
-    width: 72,
+    height: 64,
+    width: 64,
     borderRadius: 16,
-    border: isActive ? `2px solid ${theme.palette.primary.main}` : 'none'
+    border: isActive ? `2px solid ${theme.palette.primary.main}` : 'none',
+    gap: '0 10px'
   })
 )
 
 export const ImageSrc = styled('span')<ImageSrcStylesProps>(({url}) => ({
-  height: 64,
-  width: 64,
+  height: 56,
+  width: 56,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundImage: `url(./assets/landscape/${url})`
