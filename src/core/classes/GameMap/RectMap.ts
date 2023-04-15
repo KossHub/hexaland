@@ -34,11 +34,12 @@ export class RectMap extends GameMap {
     return bottom - top + 1
   }
 
+  // TODO : Rm to 2dView
   public get widthInPixels() {
     const hexTileWidth = getHexTileWidth(this._hexRadius)
     return this.widthInTiles * hexTileWidth + hexTileWidth / 2
   }
-
+// TODO : Rm to 2dView
   public get heightInPixels() {
     return (
       ((this.heightInTiles * 3) / 2) * this._hexRadius + this._hexRadius / 2

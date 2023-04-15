@@ -270,27 +270,8 @@ export class GameMap {
       })
   }
 
-  // TODO: Move to 2DRenderer
-  public getHexCoords(pixelCoords: AxialCoords): ShortCubeCoords {
-    const {x, y} = pixelCoords
-    const fractionalQ = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / this._hexRadius
-    const fractionalR = ((2 / 3) * y) / this._hexRadius
-    const fractionalS = -fractionalQ - fractionalR
-    let q = Math.round(fractionalQ)
-    let r = Math.round(fractionalR)
-    const s = Math.round(fractionalS)
-    const qDiff = Math.abs(q - fractionalQ)
-    const rDiff = Math.abs(r - fractionalR)
-    const sDiff = Math.abs(s - fractionalS)
 
-    if (qDiff > rDiff && qDiff > sDiff) {
-      q = -r - s
-    } else if (rDiff > sDiff) {
-      r = -q - s
-    }
 
-    return {q, r}
-  }
 
   /** Public getters */
 

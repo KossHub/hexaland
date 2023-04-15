@@ -8,19 +8,11 @@ export const MapContext = createContext<null | MapContextState>(null)
 const MapProvider: React.FC<PropsWithChildren> = (props) => {
   const {children} = props
 
-  const [selectedHex, setSelectedHex] =
-    useState<MapContextState['selectedHex']>(null)
-  const [hoveredHex, setHoveredHex] =
-    useState<MapContextState['hoveredHex']>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
   const mapRef = useRef<null | RectMap>(null)
 
   const contextValue: MapContextState = {
-    selectedHex,
-    hoveredHex,
-    setSelectedHex,
-    setHoveredHex,
     isInitialized,
     setIsInitialized,
     mapRef

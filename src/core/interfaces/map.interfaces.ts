@@ -1,7 +1,12 @@
-import {AxialCoords, CubeCoords, ShortCubeCoords} from '../../contexts/canvas/interfaces'
+import {MutableRefObject} from 'react'
+
+import {
+  AxialCoords,
+  CubeCoords,
+  ShortCubeCoords
+} from '../../contexts/canvas/interfaces'
 import {LANDSCAPE_TYPES} from '../classes/LandscapeTemplates/constants'
 import {HEX_TILE_TYPES} from '../classes/HexTileTemplates/constants'
-import {HexDrawnTypes} from "./hex.interfaces";
 
 export interface RectMapSchemeRow {
   [key: CubeCoords['q']]: {
@@ -23,15 +28,21 @@ export interface MapEdges {
 }
 
 export interface MapEventListener {
-  onChangeSelectedHex?: () => null | ShortCubeCoords
-  onChangeCenterHex?: () => null | ShortCubeCoords
-  onChangeScale?: () => number
+  onChangeSelectedHex?: (coords: null | ShortCubeCoords) => void
+  onChangeHoveredHex?: (coords: null | ShortCubeCoords) => void
+  onChangeCenterHex?: (coords: null | ShortCubeCoords) => void
+  onChangeScale?: (scale: number) => void
 }
 
 export interface PreparedForRenderHex {
-  hexType: keyof typeof HEX_TILE_TYPES,
-  landscapeType: keyof typeof LANDSCAPE_TYPES,
-  rotationDeg: number,
-  isReflected: boolean,
+  hexType: keyof typeof HEX_TILE_TYPES
+  landscapeType: keyof typeof LANDSCAPE_TYPES
+  rotationDeg: number
+  isReflected: boolean
   coords: AxialCoords
+}
+
+export interface CanvasObject {
+  ref: MutableRefObject<null | HTMLCanvasElement>
+  ctx: null | CanvasRenderingContext2D
 }

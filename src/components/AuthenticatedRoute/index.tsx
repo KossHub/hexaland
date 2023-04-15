@@ -1,9 +1,9 @@
 import {Outlet, Navigate} from 'react-router-dom'
 
-import ModalsProvider from '../../contexts/modals'
-import CanvasProvider from '../../contexts/canvas'
-import MapProvider from '../../contexts/map'
 import Loader from '../Loader'
+import ModalsProvider from '../../contexts/modals'
+import MapProvider from '../../contexts/map'
+import Map2DViewProvider from '../../contexts/map2DView'
 import {useAuthContext} from '../../contexts/auth/useAuthContext'
 
 const AuthenticatedRoute = () => {
@@ -17,11 +17,11 @@ const AuthenticatedRoute = () => {
 
   return currentUser ? (
     <ModalsProvider>
-      <CanvasProvider>
+      <Map2DViewProvider>
         <MapProvider>
           <Outlet />
         </MapProvider>
-      </CanvasProvider>
+      </Map2DViewProvider>
     </ModalsProvider>
   ) : (
     <Navigate to="/login" />

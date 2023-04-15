@@ -1,31 +1,23 @@
 import {useEffect, useRef} from 'react'
-import {inRange, isEqual} from 'lodash'
+import {isEqual} from 'lodash'
 
 import {
-  GAME_MAP_BORDER_SIZE,
   SCALE,
   LONG_TOUCH_DURATION_MS,
   ACCEPTABLE_CLICK_OFFSET_PX,
   ZERO_AXIAL_COORDS,
-  ZERO_SHORT_CUBE_COORDS,
   CANVAS_FPS
 } from '../constants'
-import {
-  CanvasContextState,
-  AxialCoords,
-  ShortCubeCoords,
-  CanvasContexts,
-  CanvasRefs
-} from '../contexts/canvas/interfaces'
+import {AxialCoords} from '../contexts/canvas/interfaces'
 import {MapContextState} from '../contexts/map/interfaces'
 import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
-import {MapEdges} from "../core/interfaces/map.interfaces";
+import {Map2DViewContextState} from '../contexts/map2DView/interfaces'
 
 export const useCanvasListeners = (
-  canvas: CanvasContextState,
+  map2DViewRef: Map2DViewContextState,
   mapState: MapContextState
 ) => {
   const mouseDownInitPos = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
@@ -37,15 +29,6 @@ export const useCanvasListeners = (
   const prevTouches = useRef<Touch[]>([])
   const prevMidpoint = useRef<AxialCoords>(ZERO_AXIAL_COORDS)
   const prevTouchesDistance = useRef(0)
-  const centerHexCoords = useRef<ShortCubeCoords>(ZERO_SHORT_CUBE_COORDS)
-
-  // FIXME: workaround to use actual values in drawCanvas func
-  const hoveredHex = useRef<null | ShortCubeCoords>(null)
-  const selectedHex = useRef<null | ShortCubeCoords>(null)
-  useEffect(() => {
-    hoveredHex.current = mapState.hoveredHex
-    selectedHex.current = mapState.selectedHex
-  }, [mapState.hoveredHex, mapState.selectedHex])
 
   useEffect(() => {
     return () => {
@@ -62,222 +45,67 @@ export const useCanvasListeners = (
     }
   }, [])
 
-  const clearMap = () => {
-    if (
-      !canvas.wrapperRef ||
-      Object.values(canvas.contexts).some((ctx) => !ctx)
-    ) {
-      return
-    }
-
-    const width = canvas.wrapperRef.clientWidth
-    const height = canvas.wrapperRef.clientHeight
-
-    Object.keys(canvas.contexts).forEach((key) => {
-      const ctx = canvas.contexts[
-        key as keyof CanvasContexts
-      ] as CanvasRenderingContext2D
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0)
-      ctx.clearRect(0, 0, width, height)
-
-      ctx.setTransform(
-        canvas.scale,
-        0,
-        0,
-        canvas.scale,
-        canvas.originOffset.x,
-        canvas.originOffset.y
-      )
-    })
-  }
-
   const drawCanvas = () => {
-    if (canvas.wrapperRef && mapState.mapRef?.current) {
-      clearMap()
-      mapState.mapRef.current.drawHexTiles(
-        canvas,
-        centerHexCoords.current,
-        hoveredHex.current,
-        selectedHex.current
-      )
+    if (map2DViewRef.current && mapState.mapRef.current) {
+      map2DViewRef.current.drawMap(mapState.mapRef.current)
+
       setTimeout(() => {
         requestAnimationFrame(drawCanvas)
       }, 1000 / CANVAS_FPS)
     } else if (drawTimeoutId.current) {
       clearTimeout(drawTimeoutId.current)
+
       drawTimeoutId.current = null
     }
   }
 
-  const getMapEdgesInPixels = (): MapEdges => ({
-    top: canvas.originOffset.y,
-    right:
-      canvas.originOffset.x +
-      mapState.mapRef.current!.widthInPixels * canvas.scale +
-      2 * GAME_MAP_BORDER_SIZE,
-    bottom:
-      canvas.originOffset.y +
-      mapState.mapRef.current!.heightInPixels * canvas.scale +
-      2 * GAME_MAP_BORDER_SIZE,
-    left: canvas.originOffset.x
-  })
-
-  /** returns coords even out of game mar area */
-  const getHexCubeCoords = (mousePosition: null | AxialCoords) => {
-    if (!mapState.mapRef.current) {
-      return null
-    }
-
-    if (!mousePosition) {
-      mapState.setHoveredHex(null)
-      return null
-    }
-
-    const shiftedX =
-      mousePosition.x / canvas.scale - // mouse origin
-      canvas.originOffset.x / canvas.scale - // offset
-      (Math.sqrt(3) * mapState.mapRef.current.hexRadius) / 2 - // projecting hex part
-      GAME_MAP_BORDER_SIZE / canvas.scale // border
-    const shiftedY =
-      mousePosition.y / canvas.scale - // mouse origin
-      canvas.originOffset.y / canvas.scale - // offset
-      mapState.mapRef.current.hexRadius - // projecting hex part
-      GAME_MAP_BORDER_SIZE / canvas.scale // border
-
-    return mapState.mapRef.current.getHexCoords({
-      x: shiftedX,
-      y: shiftedY
-    })
-  }
-
-  const updateCenterHex = () => {
-    const canvasWidth = canvas.wrapperRef?.clientWidth || 0
-    const canvasHeight = canvas.wrapperRef?.clientHeight || 0
-    centerHexCoords.current =
-      getHexCubeCoords({
-        x: canvasWidth / 2,
-        y: canvasHeight / 2
-      }) || ZERO_SHORT_CUBE_COORDS
-  }
-
-  const moveOffset = (offsetAmount: AxialCoords) => {
-    const {left, right, top, bottom} = getMapEdgesInPixels()
-
-    const windowWidth = canvas.wrapperRef?.clientWidth || 0
-    const newOffsetX = left + offsetAmount.x
-    const isLeftOffsetIncreasing = newOffsetX > left
-    const isLeftOffsetDecreasing = newOffsetX < left
-    const isIncreaseLeftOffsetAvailable = left < 0 || right < windowWidth
-    const isDecreaseLeftOffsetAvailable = left > 0 || right > windowWidth
-
-    if (
-      (isLeftOffsetIncreasing && isIncreaseLeftOffsetAvailable) ||
-      (isLeftOffsetDecreasing && isDecreaseLeftOffsetAvailable)
-    ) {
-      canvas.originOffset.x = newOffsetX
-    }
-
-    const windowHeight = canvas.wrapperRef?.clientHeight || 0
-    const newOffsetY = top + offsetAmount.y
-    const isTopOffsetIncreasing = newOffsetY > top
-    const isTopOffsetDecreasing = newOffsetY < top
-    const isIncreaseTopOffsetAvailable = top < 0 || bottom < windowHeight
-    const isDecreaseTopOffsetAvailable = top > 0 || bottom > windowHeight
-
-    if (
-      (isTopOffsetIncreasing && isIncreaseTopOffsetAvailable) ||
-      (isTopOffsetDecreasing && isDecreaseTopOffsetAvailable)
-    ) {
-      canvas.originOffset.y = newOffsetY
-    }
-  }
-
-  const scaleAt = (at: AxialCoords, amount: number) => {
-    let newScale = canvas.scale * amount
-    let actuallyAmount = amount
-
-    if (!inRange(newScale, SCALE.MIN, SCALE.MAX)) {
-      if (newScale < SCALE.MIN) {
-        newScale = SCALE.MIN
-        actuallyAmount = SCALE.MIN / canvas.scale
-      } else if (newScale > SCALE.MAX) {
-        newScale = SCALE.MAX
-        actuallyAmount = SCALE.MAX / canvas.scale
-      }
-    }
-
-    canvas.scale = newScale
-    const {left, right, top, bottom} = getMapEdgesInPixels()
-    const isXInMapArea = at.x >= left && at.x <= right
-    const isYInMapArea = at.y >= top && at.y <= bottom
-    const atX =
-      isXInMapArea || actuallyAmount < 1 ? at.x : (right - left) / 2 + left
-    const atY =
-      isYInMapArea || actuallyAmount < 1 ? at.y : (bottom - top) / 2 + top
-    canvas.originOffset.x = atX - (atX - left) * actuallyAmount
-    canvas.originOffset.y = atY - (atY - top) * actuallyAmount
-  }
-
   const setHoveredHex = (mousePosition: null | AxialCoords) => {
-    if (!mapState.mapRef.current) {
+    if (
+      !map2DViewRef.current ||
+      map2DViewRef.current.scale < SCALE.SIMPLIFIED_MAP
+    ) {
       return
     }
 
-    const hexCoords = getHexCubeCoords(mousePosition)
-    const newHoveredHex =
-      hexCoords && mapState.mapRef.current.doesHexExist(hexCoords)
+    const hexCoords = map2DViewRef.current.getHexCubeCoords(mousePosition)
+
+    map2DViewRef.current.hoveredHex =
+      hexCoords && mapState.mapRef.current?.doesHexExist(hexCoords)
         ? hexCoords
         : null
-
-    mapState.setHoveredHex(newHoveredHex)
   }
 
   const setSelectedHex = (mousePosition: null | AxialCoords) => {
-    if (!mapState.mapRef.current || canvas.scale < SCALE.SIMPLIFIED_MAP) {
+    if (
+      !map2DViewRef.current ||
+      map2DViewRef.current.scale < SCALE.SIMPLIFIED_MAP
+    ) {
       return
     }
 
-    const hexCoords = getHexCubeCoords(mousePosition)
-    mapState.setSelectedHex((prev) =>
+    const hexCoords = map2DViewRef.current.getHexCubeCoords(mousePosition)
+
+    map2DViewRef.current.selectedHex =
       hexCoords &&
       mapState.mapRef.current?.doesHexExist(hexCoords) &&
-      !isEqual(hexCoords, prev)
+      !isEqual(hexCoords, map2DViewRef.current.selectedHex)
         ? hexCoords
         : null
-    )
-  }
-
-  const onResize = () => {
-    if (!canvas.wrapperRef) {
-      return
-    }
-
-    const rect = canvas.wrapperRef.getBoundingClientRect()
-
-    Object.keys(canvas.refs).forEach((key) => {
-      const canvasRef = canvas.refs[
-        key as keyof CanvasRefs
-      ] as HTMLCanvasElement
-      canvasRef.width = Math.round(rect.width)
-      canvasRef.height = Math.round(rect.height)
-    })
-
-    setHoveredHex(null)
-    updateCenterHex()
   }
 
   useEffect(() => {
     if (
-      !canvas.wrapperRef ||
+      !map2DViewRef.current?.wrapperRef.current ||
       !mapState.mapRef.current ||
       !mapState.isInitialized
     ) {
       return
     }
 
+    const {wrapperRef} = map2DViewRef.current
+
     const mouseEvent = (event: MouseEvent) => {
-      if (!mapState.mapRef.current) {
+      if (!map2DViewRef.current || !mapState.mapRef.current) {
         return
       }
 
@@ -298,11 +126,15 @@ export const useCanvasListeners = (
       }
 
       if (isMouseButtonPressed.current) {
-        moveOffset({
-          x: event.offsetX - mousePrevPos.current.x,
-          y: event.offsetY - mousePrevPos.current.y
-        })
-        updateCenterHex()
+        map2DViewRef.current.moveOffset(
+          {
+            x: event.offsetX - mousePrevPos.current.x,
+            y: event.offsetY - mousePrevPos.current.y
+          },
+          mapState.mapRef.current?.widthInTiles,
+          mapState.mapRef.current?.heightInTiles
+        )
+        map2DViewRef.current.updateCenterHex()
       }
 
       const isOffsetWithinAcceptable =
@@ -351,14 +183,23 @@ export const useCanvasListeners = (
     const onTouchMove = (event: TouchEvent) => {
       event.preventDefault()
 
+      if (!map2DViewRef.current || !mapState.mapRef.current) {
+        return
+      }
+
       const touch1 = event.touches[0]
       const touch2 = event.touches[1]
+      const {widthInTiles, heightInTiles} = mapState.mapRef.current
 
       if (event.touches.length === 1 && touch1) {
-        moveOffset({
-          x: touch1.clientX - prevTouches.current[0].clientX,
-          y: touch1.clientY - prevTouches.current[0].clientY
-        })
+        map2DViewRef.current.moveOffset(
+          {
+            x: touch1.clientX - prevTouches.current[0].clientX,
+            y: touch1.clientY - prevTouches.current[0].clientY
+          },
+          widthInTiles,
+          heightInTiles
+        )
 
         prevTouches.current = [event.touches[0]]
       } else {
@@ -371,17 +212,26 @@ export const useCanvasListeners = (
 
         const midpoint = getTouchesMidpoint(touch1, touch2)
 
-        scaleAt(midpoint, delta)
-        moveOffset({
-          x: midpoint.x - prevMidpoint.current.x,
-          y: midpoint.y - prevMidpoint.current.y
-        })
+        map2DViewRef.current.scaleAt(
+          midpoint,
+          delta,
+          widthInTiles,
+          heightInTiles
+        )
+        map2DViewRef.current.moveOffset(
+          {
+            x: midpoint.x - prevMidpoint.current.x,
+            y: midpoint.y - prevMidpoint.current.y
+          },
+          widthInTiles,
+          heightInTiles
+        )
 
         prevMidpoint.current = midpoint
         prevTouchesDistance.current = distance
       }
 
-      updateCenterHex()
+      map2DViewRef.current.updateCenterHex()
     }
 
     const onTouchEnd = () => {
@@ -411,54 +261,80 @@ export const useCanvasListeners = (
     const mouseWheelEvent = (event: WheelEvent) => {
       event.preventDefault() // TODO: Check if all preventDefault required on this page
 
+      if (!map2DViewRef.current || !mapState.mapRef.current) {
+        return
+      }
+
       const {offsetX, offsetY, deltaY} = event
       // TODO: possible point to optimize - use limited length after dot scale value
       const delta = deltaY < 0 ? 1.1 : 1 / 1.1
 
-      scaleAt({x: offsetX, y: offsetY}, delta)
+      map2DViewRef.current.scaleAt(
+        {x: offsetX, y: offsetY},
+        delta,
+        mapState.mapRef.current.widthInTiles,
+        mapState.mapRef.current.heightInTiles
+      )
 
-      // to avoid case with hover on scroll and without cursor (e.g. desktop chrome in mobile dev mode)
-      // if (mapState.hoveredHex) {
-      //   setHoveredHex({x: offsetX, y: offsetY})
-      // }
+      if (map2DViewRef.current.hoveredHex) {
+        setHoveredHex({x: offsetX, y: offsetY})
+      }
 
-      updateCenterHex()
+      map2DViewRef.current.updateCenterHex()
     }
 
-    updateCenterHex()
+    const onResize = () => {
+      if (!map2DViewRef.current) {
+        return
+      }
+
+      map2DViewRef.current.resize()
+      map2DViewRef.current.hoveredHex = null
+      map2DViewRef.current.updateCenterHex()
+    }
+
+    map2DViewRef.current.updateCenterHex()
     requestAnimationFrame(drawCanvas)
 
-    canvas.wrapperRef.addEventListener('mousemove', mouseEvent, {passive: true})
-    canvas.wrapperRef.addEventListener('mousedown', mouseEvent, {passive: true})
-    canvas.wrapperRef.addEventListener('mouseup', mouseEvent, {passive: true})
-    canvas.wrapperRef.addEventListener('mouseout', mouseEvent, {passive: true})
-    canvas.wrapperRef.addEventListener('touchstart', onTouchStart, {
+    wrapperRef.current!.addEventListener('mousemove', mouseEvent, {
+      passive: true
+    })
+    wrapperRef.current!.addEventListener('mousedown', mouseEvent, {
+      passive: true
+    })
+    wrapperRef.current!.addEventListener('mouseup', mouseEvent, {passive: true})
+    wrapperRef.current!.addEventListener('mouseout', mouseEvent, {
+      passive: true
+    })
+    wrapperRef.current!.addEventListener('touchstart', onTouchStart, {
       passive: false
     })
-    canvas.wrapperRef.addEventListener('touchmove', onTouchMove, {
+    wrapperRef.current!.addEventListener('touchmove', onTouchMove, {
       passive: false
     })
-    canvas.wrapperRef.addEventListener('touchend', onTouchEnd, {passive: false})
-    canvas.wrapperRef.addEventListener('wheel', mouseWheelEvent, {
+    wrapperRef.current!.addEventListener('touchend', onTouchEnd, {
+      passive: false
+    })
+    wrapperRef.current!.addEventListener('wheel', mouseWheelEvent, {
       passive: false
     })
     window.addEventListener('resize', onResize, {passive: true})
 
     return () => {
-      if (!canvas.wrapperRef) {
+      if (!map2DViewRef.current?.wrapperRef.current) {
         return
       }
 
-      clearMap()
+      map2DViewRef.current.clearMap()
 
-      canvas.wrapperRef.removeEventListener('mousemove', mouseEvent)
-      canvas.wrapperRef.removeEventListener('mousedown', mouseEvent)
-      canvas.wrapperRef.removeEventListener('mouseup', mouseEvent)
-      canvas.wrapperRef.removeEventListener('mouseout', mouseEvent)
-      canvas.wrapperRef.removeEventListener('touchstart', onTouchStart)
-      canvas.wrapperRef.removeEventListener('touchmove', onTouchMove)
-      canvas.wrapperRef.removeEventListener('touchend', onTouchEnd)
-      canvas.wrapperRef.removeEventListener('wheel', mouseWheelEvent)
+      wrapperRef.current!.removeEventListener('mousemove', mouseEvent)
+      wrapperRef.current!.removeEventListener('mousedown', mouseEvent)
+      wrapperRef.current!.removeEventListener('mouseup', mouseEvent)
+      wrapperRef.current!.removeEventListener('mouseout', mouseEvent)
+      wrapperRef.current!.removeEventListener('touchstart', onTouchStart)
+      wrapperRef.current!.removeEventListener('touchmove', onTouchMove)
+      wrapperRef.current!.removeEventListener('touchend', onTouchEnd)
+      wrapperRef.current!.removeEventListener('wheel', mouseWheelEvent)
       window.removeEventListener('resize', onResize)
     }
   }, [mapState.isInitialized])

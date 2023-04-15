@@ -20,13 +20,15 @@ import Canvas from '../../components/Canvas'
 import TextField from '../../components/TextField'
 import Tooltip from '../../components/Tooltip'
 import LandscapeButtons from '../../components/LandscapeButtons'
+import {SIZE_LIMIT, SNACKBAR_POSITION} from './constants'
+import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
 import {RectMap} from '../../core/classes/GameMap/RectMap'
 import {
+  MapEventListener,
   RectMapScheme,
   RectMapSchemeRow
 } from '../../core/interfaces/map.interfaces'
 import {useMapContext} from '../../contexts/map/useMapContext'
-import {useCanvasContext} from '../../contexts/canvas/useCanvasContext'
 import {useSnackbar} from '../../contexts/snackbar/useSnackbar'
 import {isJSON} from '../../utils/checker'
 import {
@@ -35,13 +37,13 @@ import {
   getRandomRotation
 } from '../../core/utils/canvasTemplate.utils'
 import {getMapEdges} from '../../core/utils/mapCalculated'
-import {SIZE_LIMIT, SNACKBAR_POSITION} from './constants'
-import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
+import {useMap2DViewContext} from '../../contexts/map2DView/useMap2DViewContext'
 import * as UI from './styles'
+import {ShortCubeCoords} from '../../contexts/canvas/interfaces'
 
 const MapEditorPage = () => {
-  const canvas = useCanvasContext()
   const mapState = useMapContext()
+  const map2DView = useMap2DViewContext()
   const {enqueueSnackbar} = useSnackbar()
 
   const fileInputRef = useRef<null | HTMLInputElement>(null)
@@ -52,6 +54,9 @@ const MapEditorPage = () => {
   const [filename, setFilename] = useState('')
   const [selectedHexInScheme, setSelectedHexInScheme] = useState<
     null | RectMapSchemeRow[keyof RectMapSchemeRow]
+  >(null)
+  const [selectedLandscape, setSelectedLandscape] = useState<
+    null | keyof typeof LANDSCAPE_TYPES
   >(null)
 
   const [, triggerRender] = useState({})
@@ -127,20 +132,7 @@ const MapEditorPage = () => {
   }, [selectedHexInScheme])
 
   const handleSelectLandscapeType = (type: keyof typeof LANDSCAPE_TYPES) => {
-    if (!selectedHexInScheme) {
-      enqueueSnackbar('Не выбрано поле', {
-        variant: 'warning',
-        ...SNACKBAR_POSITION
-      })
-      return
-    }
-
-    if (selectedHexInScheme.landscapeType === type) {
-      handleRotateRight()
-    } else {
-      selectedHexInScheme.landscapeType = type
-      triggerRender({})
-    }
+    setSelectedLandscape((prev) => (prev === type ? null : type))
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,8 +206,6 @@ const MapEditorPage = () => {
   const applyMapScheme = (mapScheme: RectMapScheme) => {
     mapState.mapRef.current = new RectMap(mapScheme)
     mapState.setIsInitialized(true)
-    canvas.originOffset.x = 0
-    canvas.originOffset.y = 0
   }
 
   useEffect(() => {
@@ -248,25 +238,45 @@ const MapEditorPage = () => {
   }, [width, height])
 
   useEffect(() => {
-    mapState.setSelectedHex(null)
-  }, [width, height])
-
-  useEffect(() => {
-    if (!mapState.selectedHex) {
-      setSelectedHexInScheme(null)
+    if (!map2DView.current) {
       return
     }
 
-    const {r, q} = mapState.selectedHex
-    const hexInScheme = mapState.mapRef.current?.mapScheme?.[r]?.[q]
+    map2DView.current.selectedHex = null
+  }, [width, height])
 
-    if (!hexInScheme) {
-      throw new Error(`q:${q}, r:${r} hex not found in scheme`)
-      setSelectedHexInScheme(null)
+  useEffect(() => {
+    const listener: MapEventListener = {
+      onChangeSelectedHex: (selectedHex: null | ShortCubeCoords) => {
+        if (!selectedHex) {
+          setSelectedHexInScheme(null)
+          return
+        }
+
+        const {r, q} = selectedHex
+        const hexInScheme = mapState.mapRef.current?.mapScheme?.[r]?.[q]
+
+        if (!hexInScheme) {
+          throw new Error(`q:${q}, r:${r} hex not found in scheme`)
+          setSelectedHexInScheme(null)
+        }
+
+        setSelectedHexInScheme(hexInScheme)
+
+        if (selectedLandscape) {
+          hexInScheme.landscapeType = selectedLandscape
+        } else {
+          setSelectedLandscape(hexInScheme.landscapeType)
+        }
+      }
     }
 
-    setSelectedHexInScheme(hexInScheme)
-  }, [mapState.selectedHex])
+    map2DView.current?.subscribe?.(listener)
+
+    return () => {
+      map2DView.current?.unsubscribe?.(listener)
+    }
+  }, [selectedLandscape])
 
   const handleSetWidth = (event: ChangeEvent<HTMLInputElement>) => {
     setWidth(Math.min(Number(event.target.value), SIZE_LIMIT))
@@ -278,22 +288,19 @@ const MapEditorPage = () => {
     setIsResizeRequired(true)
   }
 
-  const handleKeyup = useCallback(
-    (event: KeyboardEvent) => {
+  useEffect(() => {
+    const handleKeyup = (event: KeyboardEvent) => {
       if (event.key === 't') {
         handleSetRandomTransform()
       }
-    },
-    [handleSetRandomTransform]
-  )
+    }
 
-  useEffect(() => {
     window.addEventListener('keyup', handleKeyup)
 
     return () => {
       window.removeEventListener('keyup', handleKeyup)
     }
-  }, [handleKeyup])
+  }, [handleSetRandomTransform])
 
   return (
     <UI.Wrapper maxWidth="xl">
@@ -373,16 +380,24 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
+        <Typography mb={2} sx={{fontWeight: selectedLandscape ? 600 : 400}}>
+          {selectedLandscape || 'ландшафт не выбран'}
+        </Typography>
 
         <Divider sx={{mb: 2}} />
 
         <UI.LandscapeButtonsWrapper>
-          <LandscapeButtons active={selectedHexInScheme?.landscapeType} onSelect={handleSelectLandscapeType} />
+          <LandscapeButtons
+            active={selectedLandscape}
+            onSelect={handleSelectLandscapeType}
+          />
         </UI.LandscapeButtonsWrapper>
 
         <Divider sx={{mt: 'auto', mb: 2}} />
 
-        <Typography mb={2} sx={{userSelect: 'none'}}>{filename || 'файл не загружен'}</Typography>
+        <Typography mb={2} sx={{userSelect: 'none'}}>
+          {filename || 'файл не загружен'}
+        </Typography>
         <Box sx={{display: 'flex', gap: 1, width: '100%'}}>
           <Button variant="outlined" component="label" sx={{width: '100%'}}>
             Загрузить
