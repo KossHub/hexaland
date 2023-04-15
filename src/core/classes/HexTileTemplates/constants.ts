@@ -11,6 +11,6 @@ export const HEX_TILE_TYPES: TemplateTypes = {
   },
   selected: {
     detailed: '#fff7e6',
-    simplified: 'rgba(255, 247, 230, .5)'
+    simplified: 'rgba(255, 247, 230, .7)'
   }
 }

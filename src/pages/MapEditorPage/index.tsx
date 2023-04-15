@@ -73,7 +73,7 @@ const MapEditorPage = () => {
     )
   }, [selectedHexInScheme?.rotationDeg, selectedHexInScheme?.isReflected])
 
-  const handleRotateRight = () => {
+  const handleRotateRight = useCallback(() => {
     if (!selectedHexInScheme) {
       return
     }
@@ -84,9 +84,13 @@ const MapEditorPage = () => {
       (selectedHexInScheme.rotationDeg + delta) % 360
 
     triggerRender({})
-  }
+  }, [
+    selectedHexInScheme,
+    selectedHexInScheme?.isReflected,
+    selectedHexInScheme?.rotationDeg
+  ])
 
-  const handleRotateLeft = () => {
+  const handleRotateLeft = useCallback(() => {
     if (!selectedHexInScheme) {
       return
     }
@@ -97,9 +101,13 @@ const MapEditorPage = () => {
       (selectedHexInScheme.rotationDeg + delta) % 360
 
     triggerRender({})
-  }
+  }, [
+    selectedHexInScheme,
+    selectedHexInScheme?.isReflected,
+    selectedHexInScheme?.rotationDeg
+  ])
 
-  const handleReflect = () => {
+  const handleReflect = useCallback(() => {
     if (!selectedHexInScheme) {
       return
     }
@@ -107,7 +115,7 @@ const MapEditorPage = () => {
     selectedHexInScheme.isReflected = !selectedHexInScheme.isReflected
 
     triggerRender({})
-  }
+  }, [selectedHexInScheme, selectedHexInScheme?.isReflected])
 
   const handleResetTransform = () => {
     if (!selectedHexInScheme) {
@@ -132,7 +140,13 @@ const MapEditorPage = () => {
   }, [selectedHexInScheme])
 
   const handleSelectLandscapeType = (type: keyof typeof LANDSCAPE_TYPES) => {
-    setSelectedLandscape((prev) => (prev === type ? null : type))
+    const newLandscape = selectedLandscape === type ? null : type
+
+    if (selectedHexInScheme && newLandscape) {
+      selectedHexInScheme.landscapeType = newLandscape
+    }
+
+    setSelectedLandscape(newLandscape)
   }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,6 +264,7 @@ const MapEditorPage = () => {
       onChangeSelectedHex: (selectedHex: null | ShortCubeCoords) => {
         if (!selectedHex) {
           setSelectedHexInScheme(null)
+          setSelectedLandscape(null)
           return
         }
 
@@ -290,8 +305,21 @@ const MapEditorPage = () => {
 
   useEffect(() => {
     const handleKeyup = (event: KeyboardEvent) => {
-      if (event.key === 't') {
-        handleSetRandomTransform()
+      switch (event.key) {
+        case 'w': {
+          handleReflect()
+          break
+        }
+        case 'e': {
+          handleRotateLeft()
+          break
+        }
+        case 'r': {
+          handleRotateRight()
+          break
+        }
+        default: {
+        }
       }
     }
 
@@ -300,7 +328,12 @@ const MapEditorPage = () => {
     return () => {
       window.removeEventListener('keyup', handleKeyup)
     }
-  }, [handleSetRandomTransform])
+  }, [
+    handleSetRandomTransform,
+    handleReflect,
+    handleRotateLeft,
+    handleRotateRight
+  ])
 
   return (
     <UI.Wrapper maxWidth="xl">
@@ -347,7 +380,7 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Случайная трансформация (T)">
+          <Tooltip title="Случайная трансформация">
             <IconButton
               onClick={handleSetRandomTransform}
               disabled={!selectedHexInScheme}
@@ -356,13 +389,13 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Отразить по вертикали">
+          <Tooltip title="Отразить по вертикали (W)">
             <IconButton onClick={handleReflect} disabled={!selectedHexInScheme}>
               <FlipRoundedIcon />
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Против часовой стрелки">
+          <Tooltip title="Против часовой стрелки (E)">
             <IconButton
               onClick={handleRotateLeft}
               disabled={!selectedHexInScheme}
@@ -371,7 +404,7 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="По часовой стрелке">
+          <Tooltip title="По часовой стрелке (R)">
             <IconButton
               onClick={handleRotateRight}
               disabled={!selectedHexInScheme}
@@ -380,7 +413,10 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
-        <Typography mb={2} sx={{fontWeight: selectedLandscape ? 600 : 400}}>
+        <Typography
+          mb={2}
+          sx={{fontWeight: selectedLandscape ? 600 : 400, textAlign: 'center'}}
+        >
           {selectedLandscape || 'ландшафт не выбран'}
         </Typography>
 
