@@ -1,6 +1,6 @@
 import {
   CanvasLandscapeTemplatesScheme,
-  MapDrawnType
+  MapMode
 } from '../../interfaces/hex.interfaces'
 import {getCanvasTemplate} from '../../utils/canvasTemplate.utils'
 import {LANDSCAPE_TYPES, ROTATION_DEG} from './constants'
@@ -26,7 +26,7 @@ export class LandscapeTemplates extends DrawnTemplates {
   ) {
     const {canvas, ctx} = getCanvasTemplate(radius)
     // assetPath or color
-    const value = LANDSCAPE_TYPES[landscapeType][schemeKey as MapDrawnType]
+    const value = LANDSCAPE_TYPES[landscapeType][schemeKey as MapMode]
 
     if (value) {
       if (schemeKey === 'detailed') {
@@ -46,7 +46,7 @@ export class LandscapeTemplates extends DrawnTemplates {
         ctx.fill()
       }
 
-      const scheme = this._scheme[schemeKey as MapDrawnType]
+      const scheme = this._scheme[schemeKey as MapMode]
 
       if (!(landscapeType in scheme)) {
         scheme[landscapeType] = {}

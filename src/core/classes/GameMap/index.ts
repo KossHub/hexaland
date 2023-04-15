@@ -10,50 +10,24 @@ import {Hex} from '../Hex'
 import {
   CanvasLandscapeTemplatesScheme,
   CanvasTemplatesScheme,
-  MapDrawnType
+  MapMode
 } from '../../interfaces/hex.interfaces'
-import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
-import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 import {HexTileTemplates} from '../HexTileTemplates'
-import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {LandscapeTemplates} from '../LandscapeTemplates'
+import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
+import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {SCALE} from '../../../constants'
+import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
 // TODO: Use only RectMap without inheritance from GameMap
 export class GameMap {
-  // TODO: Move all draws to a separate class
-
-  // interface IMapChangeListener {
-  //   onChange();
-  // }
-  //
-  // class Map2DRenderer {
-  //   selected = 2;
-  //   subscribers: IMapChangeListener[] = [];
-  //   setSelected(val) {
-  //     this.selected = val;
-  //     this.subscribers.forEach(each=>each.onChange());
-  //   }
-  //   subscribe(listener: IMapChangeListener) {
-  //     this.subscribers.push(listener);
-  //   }
-  // }
-  //
-  // let C = ()=>{
-  //   let [frame, setFrame] = useState(0);
-  //   let map: Map2DRenderer = useContext<Map2DRenderer>(Map);
-  //   useEffect(()=>{
-  //     map.subscribe({
-  //       onChange: ()=>setFrame(s=>s+1),
-  //     });
-  //   }, []);
-  // };
-
   protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
     keyof typeof HEX_TILE_TYPES
   > = null
   protected _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
     null
+
+  // TODO: make public
   protected _mapScheme: RectMapScheme = {}
   // private _selectedHex: null | ShortCubeCoords = null
   // private _hoveredHex: null | ShortCubeCoords = null
@@ -66,19 +40,61 @@ export class GameMap {
     this._landscapeTemplatesScheme = landscapeTemplates.scheme
   }
 
+  /** Public methods */
+
   public doesHexExist(coords: ShortCubeCoords): boolean {
     throw new Error('Method not implemented.')
   }
 
-  public get hexRadius() {
-    return this._hexRadius
+  // cube_ring
+  public getRingHexTiles(
+      center: ShortCubeCoords,
+      radius: number
+  ): ShortCubeCoords[] {
+    //steps away from the center, then follow the rotated vectors in a path around the ring
+    if (radius === 0) {
+      return []
+    }
+
+    const result: ShortCubeCoords[] = []
+
+    let anchorHex = this.getShiftedHexTile(
+        center,
+        CUBE_DIRECTION_VECTORS.BOTTOM_LEFT,
+        radius
+    )
+
+    Object.values(CUBE_DIRECTION_VECTORS).forEach((vector) => {
+      for (let i = 0; i < radius; i++) {
+        result.push(anchorHex)
+        anchorHex = this.getShiftedHexTile(anchorHex, vector)
+      }
+    })
+
+    return result
   }
+
+  // cube_spiral
+  public getSpiralHexTiles(
+      center: ShortCubeCoords,
+      maxRadius: number
+  ): ShortCubeCoords[] {
+    const result = [center]
+
+    for (let radius = 1; radius <= maxRadius; radius++) {
+      result.push(...this.getRingHexTiles(center, radius))
+    }
+
+    return result
+  }
+
+  /** Private methods */
 
   private drawLandscape(
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
     landscapeType: string,
-    mapType: MapDrawnType = 'detailed',
+    mapType: MapMode = 'detailed',
     rotationDeg: number = 0,
     isReflected: boolean = false
   ) {
@@ -119,7 +135,7 @@ export class GameMap {
   private drawHexTile(
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
-    mapType: MapDrawnType = 'detailed',
+    mapType: MapMode = 'detailed',
     hexType: keyof typeof HEX_TILE_TYPES = 'default'
   ) {
     if (!ctx) {
@@ -141,7 +157,7 @@ export class GameMap {
     ctx.restore()
   }
 
-  /** cube_add & cube_scale */
+  // cube_add & cube_scale
   protected getShiftedHexTile(
     origin: ShortCubeCoords,
     vector: Vector,
@@ -157,51 +173,6 @@ export class GameMap {
       q: origin.q + vector.q * distance,
       r: origin.r + vector.r * distance
     }
-  }
-
-  /** cube_ring */
-  protected getRingHexTiles(
-    center: ShortCubeCoords,
-    radius: number
-  ): ShortCubeCoords[] {
-    /**
-     *  steps away from the center,
-     *  then follow the rotated vectors in a path around the ring
-     * */
-    if (radius === 0) {
-      return []
-    }
-
-    const result: ShortCubeCoords[] = []
-
-    let anchorHex = this.getShiftedHexTile(
-      center,
-      CUBE_DIRECTION_VECTORS.BOTTOM_LEFT,
-      radius
-    )
-
-    Object.values(CUBE_DIRECTION_VECTORS).forEach((vector) => {
-      for (let i = 0; i < radius; i++) {
-        result.push(anchorHex)
-        anchorHex = this.getShiftedHexTile(anchorHex, vector)
-      }
-    })
-
-    return result
-  }
-
-  /** cube_spiral */
-  protected getSpiralHexTiles(
-    center: ShortCubeCoords,
-    maxRadius: number
-  ): ShortCubeCoords[] {
-    const result = [center]
-
-    for (let radius = 1; radius <= maxRadius; radius++) {
-      result.push(...this.getRingHexTiles(center, radius))
-    }
-
-    return result
   }
 
   public get widthInPixels(): number {
@@ -299,6 +270,7 @@ export class GameMap {
       })
   }
 
+  // TODO: Move to 2DRenderer
   public getHexCoords(pixelCoords: AxialCoords): ShortCubeCoords {
     const {x, y} = pixelCoords
     const fractionalQ = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / this._hexRadius
@@ -318,6 +290,13 @@ export class GameMap {
     }
 
     return {q, r}
+  }
+
+  /** Public getters */
+
+  // TODO: remove from class
+  public get hexRadius() {
+    return this._hexRadius
   }
 
   // public get selectedHex() {

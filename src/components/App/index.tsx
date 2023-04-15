@@ -19,6 +19,7 @@ import SnackbarProvider from '../../contexts/snackbar'
 import AuthProvider from '../../contexts/auth'
 import Theme from '../Theme'
 import PreHome from '../PreHome'
+import * as UI from './styles'
 
 const App = () => {
   dayjs.locale('ru')
@@ -26,24 +27,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <CssBaseline />
-      <GlobalStyles
-        // TODO: move to a separate file
-        styles={{
-          html: {
-            height: '100% !important',
-            overflow: 'hidden',
-            overscrollBehavior: 'none' // disable refresh page behavior on mobile
-          },
-          body: {
-            height: '100%',
-            overscrollBehavior: 'none'
-          },
-          ['#root']: {
-            height: '100%',
-            overscrollBehavior: 'none'
-          }
-        }}
-      />
+      <GlobalStyles styles={UI.globalStyles} />
       <Theme>
         <SnackbarProvider>
           <AuthProvider>

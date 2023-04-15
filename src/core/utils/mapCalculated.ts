@@ -1,6 +1,6 @@
-import {RectMapInitData, RectMapScheme} from '../interfaces/map.interfaces'
+import {MapEdges, RectMapScheme} from '../interfaces/map.interfaces'
 
-export const getMapEdges = (mapScheme: RectMapScheme): RectMapInitData => {
+export const getMapEdges = (mapScheme: RectMapScheme): MapEdges => {
   const rows = Object.keys(mapScheme)
 
   return {

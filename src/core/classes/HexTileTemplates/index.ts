@@ -1,6 +1,6 @@
 import {
   CanvasTemplatesScheme,
-  MapDrawnType
+  MapMode
 } from '../../interfaces/hex.interfaces'
 import {getCanvasTemplate} from '../../utils/canvasTemplate.utils'
 import {HEX_TILE_TYPES} from './constants'
@@ -23,7 +23,7 @@ export class HexTileTemplates extends DrawnTemplates {
       Object.keys(this._scheme).forEach((schemeKey) => {
         const {canvas, ctx} = getCanvasTemplate(radius)
 
-        const color = HEX_TILE_TYPES[hexType][schemeKey as MapDrawnType]
+        const color = HEX_TILE_TYPES[hexType][schemeKey as MapMode]
 
         if (color) {
           drawHexShape(ctx, radius)
@@ -54,7 +54,7 @@ export class HexTileTemplates extends DrawnTemplates {
             }
           }
 
-          this._scheme[schemeKey as MapDrawnType][hexType] = canvas
+          this._scheme[schemeKey as MapMode][hexType] = canvas
         }
       })
     })

@@ -15,7 +15,7 @@ export class Game {
 
   constructor(
     private _name: string,
-    // mapInitData: RectMapInitData,
+    // mapInitData: MapEdges,
     private _map: RectMap,
     private _players: Player[],
     initializedCb?: (uuid: string) => void
@@ -37,7 +37,7 @@ export class Game {
     }
   }
 
-  // private initMap(initData: RectMapInitData) {
+  // private initMap(initData: MapEdges) {
   //   this._map = new RectMap(initData)
   // }
 

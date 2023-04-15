@@ -1,5 +1,5 @@
 import {
-  RectMapInitData,
+  MapEdges,
   RectMapScheme,
   RectMapSchemeRow
 } from '../interfaces/map.interfaces'
@@ -30,7 +30,7 @@ export const getRandomReflectedState = () => Boolean(random(1))
 
 export const getRandomRotation = () => ROTATION_DEG[random(ROTATION_DEG.length - 1)]
 
-export const getDefaultMapScheme = (edges: RectMapInitData) => {
+export const getDefaultMapScheme = (edges: MapEdges) => {
   const {top, right, bottom, left} = edges
   const coordsScheme: RectMapScheme = {}
 

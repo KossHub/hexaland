@@ -1,3 +1,5 @@
+// TODO: Remove dir
+
 export class DrawnTemplates {
   protected _scheme: any = null
 

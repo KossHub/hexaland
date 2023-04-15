@@ -16,7 +16,6 @@ export const Wrapper = styled(Paper)(({theme}) => ({
     height: '100%',
     width: '100%',
     position: 'absolute',
-    // imageRendering: 'pixelated', '// FIXME: to use or not to use
 
     '&#canvasLandscape': {
       zIndex: 2,

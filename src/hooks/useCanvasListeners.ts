@@ -12,7 +12,6 @@ import {
 } from '../constants'
 import {
   CanvasContextState,
-  MapEdgesInPixels,
   AxialCoords,
   ShortCubeCoords,
   CanvasContexts,
@@ -23,6 +22,7 @@ import {
   getTouchesDistance,
   getTouchesMidpoint
 } from '../core/utils/canvasCalculates.utils'
+import {MapEdges} from "../core/interfaces/map.interfaces";
 
 export const useCanvasListeners = (
   canvas: CanvasContextState,
@@ -70,8 +70,8 @@ export const useCanvasListeners = (
       return
     }
 
-    const width = canvas.wrapperRef?.clientWidth || 0
-    const height = canvas.wrapperRef?.clientHeight || 0
+    const width = canvas.wrapperRef.clientWidth
+    const height = canvas.wrapperRef.clientHeight
 
     Object.keys(canvas.contexts).forEach((key) => {
       const ctx = canvas.contexts[
@@ -110,7 +110,7 @@ export const useCanvasListeners = (
     }
   }
 
-  const getMapEdgesInPixels = (): MapEdgesInPixels => ({
+  const getMapEdgesInPixels = (): MapEdges => ({
     top: canvas.originOffset.y,
     right:
       canvas.originOffset.x +

@@ -5,9 +5,9 @@ export type CanvasTemplateScheme<T extends string> = Record<
   HTMLCanvasElement
 >
 
-export type MapDrawnType = 'detailed' | 'simplified'
+export type MapMode = 'detailed' | 'simplified'
 
-export type HexDrawnTypes = Record<MapDrawnType, null | string>
+export type HexDrawnTypes = Record<MapMode, null | string>
 
 export type CanvasTemplatesScheme<T extends string> = Record<
   keyof HexDrawnTypes,

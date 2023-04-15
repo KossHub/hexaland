@@ -1,6 +1,6 @@
 import {inRange} from 'lodash'
 
-import {RectMapInitData, RectMapScheme} from '../../interfaces/map.interfaces'
+import {MapEdges, RectMapScheme} from '../../interfaces/map.interfaces'
 import {GameMap} from './index'
 import {getHexTileWidth} from '../../utils/canvasCalculates.utils'
 import {HEX_TILE_RADIUS} from '../../../constants'
@@ -8,7 +8,7 @@ import {ShortCubeCoords} from '../../../contexts/canvas/interfaces'
 import {getMapEdges} from '../../utils/mapCalculated'
 
 export class RectMap extends GameMap {
-  private _edges: null | RectMapInitData = null // TODO: Rename to GameMapEdges
+  private _edges: null | MapEdges = null
 
   constructor(
     protected _mapScheme: RectMapScheme,
