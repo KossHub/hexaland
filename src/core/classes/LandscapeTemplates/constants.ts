@@ -184,6 +184,10 @@ export const LANDSCAPE_TYPES: TemplateTypes = {
   SWAMP_1: {
     detailed: 'swamp1.png',
     simplified: '#57582b'
+  },
+  LANDS_CORE1: {
+    detailed: 'landsCore1.png',
+    simplified: '#051c82'
   }
 }
 

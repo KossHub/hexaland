@@ -13,7 +13,8 @@ import {
   FlipRounded as FlipRoundedIcon,
   RotateLeftRounded as RotateLeftRoundedIcon,
   RestoreRounded as RestoreRoundedIcon,
-  ShuffleRounded as ShuffleRoundedIcon
+  ShuffleRounded as ShuffleRoundedIcon,
+  ClearRounded as ClearRoundedIcon
 } from '@mui/icons-material'
 
 import Canvas from '../../components/Canvas'
@@ -413,12 +414,21 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
-        <Typography
-          mb={2}
-          sx={{fontWeight: selectedLandscape ? 600 : 400, textAlign: 'center'}}
-        >
-          {selectedLandscape || 'ландшафт не выбран'}
-        </Typography>
+        <Box sx={{position: 'relative'}}>
+          <Typography sx={{fontWeight: selectedLandscape ? 600 : 400}}>
+            {selectedLandscape || 'ландшафт не выбран'}
+          </Typography>
+
+          {selectedLandscape && (
+            <IconButton
+              size="small"
+              onClick={() => setSelectedLandscape(null)}
+              sx={{position: 'absolute', bottom: 0, right: 0}}
+            >
+              <ClearRoundedIcon />
+            </IconButton>
+          )}
+        </Box>
 
         <Divider sx={{mb: 2}} />
 
