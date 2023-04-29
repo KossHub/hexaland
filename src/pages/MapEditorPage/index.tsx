@@ -41,6 +41,7 @@ import {getMapEdges} from '../../core/utils/mapCalculated'
 import {useMap2DViewContext} from '../../contexts/map2DView/useMap2DViewContext'
 import * as UI from './styles'
 import {ShortCubeCoords} from '../../contexts/canvas/interfaces'
+import {parseMap, simplifyMap} from '../../utils/mapStorage'
 
 const MapEditorPage = () => {
   const mapState = useMapContext()
@@ -179,7 +180,7 @@ const MapEditorPage = () => {
 
       setFilename(name)
 
-      const mapScheme = JSON.parse(result)
+      const mapScheme = parseMap(JSON.parse(result))
 
       const {bottom, right} = getMapEdges(mapScheme)
 
@@ -204,11 +205,14 @@ const MapEditorPage = () => {
       return
     }
 
+    const simplifiedMap = simplifyMap(mapState.mapRef.current.mapScheme)
+
     let el = document.createElement('a')
+
     el.setAttribute(
       'href',
       `data:text/plain;charset=utf-8,${encodeURIComponent(
-        JSON.stringify(mapState.mapRef.current.mapScheme)
+        JSON.stringify(simplifiedMap)
       )}`
     )
     el.setAttribute('download', filename)

@@ -1,5 +1,154 @@
 import {TemplateTypes} from '../../interfaces/hex.interfaces'
 
+export interface Landscapes {
+  [key: string]: {
+    name: string
+    images: string[]
+    color: string
+    travelSpeed: number | number[] // 6 values corresponding to CUBE_DIRECTION_VECTORS
+    isViewObstacle: boolean
+    description: string
+  }
+}
+
+const TRAVEL_SPEEDS = {
+  VERY_FAST: 1,
+  FAST: 0.8,
+  MIDDLE: 0.6,
+  SLOW: 0.5,
+  VERY_SLOW: 0.4,
+  ZERO: 0
+}
+
+export const LANDSCAPES: Landscapes = {
+  MEADOW: {
+    name: 'Луг',
+    images: ['meadow1.png', 'meadow2.png', 'meadow3.png', 'meadow4.png'],
+    color: '#668646',
+    travelSpeed: TRAVEL_SPEEDS.SLOW,
+    isViewObstacle: false,
+    description: 'Можно собирать различные травы'
+  },
+  GROVE: {
+    name: 'Роща',
+    images: ['grove1.png'],
+    color: '#5f6c38',
+    travelSpeed: TRAVEL_SPEEDS.VERY_SLOW,
+    isViewObstacle: false,
+    description: 'Если сохранить, здесь вырастет новый лес'
+  },
+  FOREST: {
+    name: 'Лес',
+    images: ['forest1.png', 'forest2.png'],
+    color: '#57582b',
+    travelSpeed: TRAVEL_SPEEDS.ZERO,
+    isViewObstacle: true,
+    description:
+      'Можно добывать дерево. Если не вырубать, рядом может вырасти роща'
+  },
+  STONES: {
+    name: 'Камни',
+    images: ['stone1.png', 'stone2.png'],
+    color: '#57582b',
+    travelSpeed: TRAVEL_SPEEDS.ZERO,
+    isViewObstacle: true,
+    description: 'Можно добывать камень для строительства'
+  },
+  STONE_PLATEAU: {
+    name: 'Каменное плато',
+    images: ['stone3.png'],
+    color: '#5f6c38',
+    travelSpeed: TRAVEL_SPEEDS.VERY_SLOW,
+    isViewObstacle: false,
+    description:
+      'Можно добывать камень для строительства. Позволяет перемещаться по поверхности'
+  },
+  ROAD: {
+    name: 'Дорога',
+    images: [
+      'road1.png',
+      'road2.png',
+      'road3.png',
+      'road4.png',
+      'road5.png',
+      'road6.png',
+      'road7.png',
+      'road8.png'
+    ],
+    color: '#8d8071',
+    travelSpeed: TRAVEL_SPEEDS.VERY_FAST,
+    isViewObstacle: false,
+    description: 'Лес вдоль дороги не вырастет'
+  },
+  PATH: {
+    name: 'Тропа',
+    images: [
+      'path1.png',
+      'path2.png',
+      'path3.png',
+      'path4.png',
+      'path5.png',
+      'path6.png',
+      'path7.png'
+    ],
+    color: '#8d8071',
+    travelSpeed: TRAVEL_SPEEDS.FAST,
+    isViewObstacle: false, // TODO: Separate PATH_WITH_FOREST, PATH_WITH_GROVE
+    description: ''
+  },
+  SOURCE: {
+    name: 'Источник',
+    images: ['source1.png'],
+    color: '#48929f',
+    travelSpeed: TRAVEL_SPEEDS.ZERO,
+    isViewObstacle: true,
+    description: 'Здесь можно восстановить силы'
+  },
+  RIVER: {
+    name: 'Река',
+    images: [
+      'river1.png',
+      'river2.png',
+      'river3.png',
+      'river4.png',
+      'river5.png',
+      'river6.png',
+      'river7.png',
+      'river8.png',
+      'river9.png',
+      'river10.png'
+    ],
+    color: '#48929f',
+    travelSpeed: TRAVEL_SPEEDS.ZERO,
+    isViewObstacle: false,
+    description: 'Выберите подходящее место реки, чтобы построить мост'
+  },
+  RAPID: {
+    name: 'Порог',
+    images: ['rapid1.png'],
+    color: '#48929f',
+    travelSpeed: TRAVEL_SPEEDS.ZERO,
+    isViewObstacle: true,
+    description: ''
+  },
+  STONE_BRIDGE: {
+    name: 'Каменный мост',
+    images: ['bridge1.png'],
+    color: '#8d8071',
+    travelSpeed: TRAVEL_SPEEDS.FAST,
+    isViewObstacle: false,
+    description: ''
+  },
+  STONE_BRIDGE: {
+    name: 'Каменный мост',
+    images: ['bridge1.png'],
+    color: '#8d8071',
+    travelSpeed: 0,
+    isViewObstacle: false,
+    description: ''
+  }
+}
+
 export const LANDSCAPE_TYPES: TemplateTypes = {
   GRASS_1: {
     detailed: 'grass1.png',
@@ -85,6 +234,7 @@ export const LANDSCAPE_TYPES: TemplateTypes = {
     detailed: 'path3.png',
     simplified: '#8d8071'
   },
+  /** FIXME: To remove ? */
   PATH_4: {
     detailed: 'path4.png',
     simplified: '#8d8071'

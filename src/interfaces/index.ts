@@ -16,3 +16,5 @@ export interface EnqueueSnackbarOptions
 
 // TODO: Rm if unused
 export type PartialRecord<K extends keyof any, T> = Partial<Record<K, T>>
+
+export type TodoAny = any
