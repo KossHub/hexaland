@@ -20,6 +20,7 @@ export const ImageSrc = styled('span')<ImageSrcStylesProps>(({url}) => ({
   backgroundPosition: 'center',
   backgroundImage: `url(./assets/landscape/${url})`
 }))
+
 export const Icon = styled(CheckCircleRoundedIcon)(({theme}) => ({
   position: 'absolute',
   color: theme.palette.common.white,

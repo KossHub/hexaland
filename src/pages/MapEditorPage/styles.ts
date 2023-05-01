@@ -13,7 +13,7 @@ export const LandscapeButtonsWrapper = styled(Box)(({theme}) => ({
   marginBottom: 16,
   overflow: 'auto',
   height: 'fit-content',
-  gap: '0 10px',
+  gap: '0 4px',
 
   '& > button:nth-of-type(7n - 2)': {
     marginLeft: 36

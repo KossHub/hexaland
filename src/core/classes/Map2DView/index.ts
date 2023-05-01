@@ -8,12 +8,11 @@ import {
   PreparedForRenderHex
 } from '../../interfaces/map.interfaces'
 import {Hex} from '../Hex'
-import {CanvasTemplates} from '../CanvasTemplates'
 import {
-  CanvasLandscapeTemplatesScheme,
-  CanvasTemplatesScheme,
-  MapMode
+  LandscapeTemplatesScheme,
+  HexTilesTemplatesScheme
 } from '../../interfaces/hex.interfaces'
+import {MapMode} from '../../interfaces/map.interfaces'
 import {RectMap} from '../GameMap/RectMap'
 import {HexTileTemplates} from '../HexTileTemplates'
 import {LandscapeTemplates} from '../LandscapeTemplates'
@@ -24,14 +23,13 @@ import {
   ZERO_SHORT_CUBE_COORDS
 } from '../../../constants'
 import {INIT_CANVAS_OBJECT} from './constants'
-import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
+import {HEX_TILE_TYPE, HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {inRange, isEqual} from 'lodash'
 import {sortingBeforeRendering} from '../../utils/mapRender'
 import {
   getHexTileHeight,
   getHexTileWidth
 } from '../../utils/canvasCalculates.utils'
-import {GameMap} from '../GameMap'
 
 export class Map2DView {
   private _gridCanvas: CanvasObject = {...INIT_CANVAS_OBJECT}
@@ -44,11 +42,8 @@ export class Map2DView {
   private _subscribers: MapEventListener[] = []
   // private _canvasTemplates: null | CanvasTemplates = null
 
-  protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
-    keyof typeof HEX_TILE_TYPES
-  > = null
-  protected _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
-    null
+  protected _hexTileTemplatesScheme: null | HexTilesTemplatesScheme = null
+  protected _landscapeTemplatesScheme: null | LandscapeTemplatesScheme = null
 
   constructor(
     gridCanvasRef: RefObject<HTMLCanvasElement>,
@@ -65,8 +60,8 @@ export class Map2DView {
     const landscapeTemplates = new LandscapeTemplates(_hexRadius)
     this._landscapeTemplatesScheme = landscapeTemplates.scheme
 
-    this._initCtx(this._gridCanvas, gridCanvasRef, onError)
-    this._initCtx(this._landscapeCanvas, landscapeCanvasRef, onError)
+    this.initCtx(this._gridCanvas, gridCanvasRef, onError)
+    this.initCtx(this._landscapeCanvas, landscapeCanvasRef, onError)
   }
 
   /** Public methods */
@@ -120,11 +115,11 @@ export class Map2DView {
           const isHighlighted = isEqual(coords, this._hoveredHex)
           const isSelected = isEqual(coords, this._selectedHex)
 
-          let hexType: keyof typeof HEX_TILE_TYPES = 'default'
+          let hexType: keyof typeof HEX_TILE_TYPES = HEX_TILE_TYPE.DEFAULT
           if (isSelected) {
-            hexType = 'selected'
+            hexType = HEX_TILE_TYPE.SELECTED
           } else if (isHighlighted) {
-            hexType = 'highlighted'
+            hexType = HEX_TILE_TYPE.HIGHLIGHTED
           }
 
           const {landscapeType, rotationDeg, isReflected} =
@@ -143,8 +138,8 @@ export class Map2DView {
       }, [] as PreparedForRenderHex[])
       .sort(sortingBeforeRendering)
       .forEach(({hexType, landscapeType, rotationDeg, isReflected, coords}) => {
-        this._drawHexTile({hexType, coords})
-        this._drawLandscape({landscapeType, rotationDeg, isReflected, coords})
+        this.drawHexTile({hexType, coords})
+        this.drawLandscape({landscapeType, coords, rotationDeg, isReflected})
       })
   }
 
@@ -174,14 +169,14 @@ export class Map2DView {
       mousePosition.x / this._scale - // mouse origin
       this._offset.x / this._scale - // offset
       (Math.sqrt(3) * this._hexRadius) / 2 - // projecting hex part
-      GAME_MAP_BORDER_SIZE / this._scale // border
+      GAME_MAP_BORDER_SIZE / this._scale // borders
     const shiftedY =
       mousePosition.y / this._scale - // mouse origin
       this._offset.y / this._scale - // offset
       this._hexRadius - // projecting hex part
-      GAME_MAP_BORDER_SIZE / this._scale // border
+      GAME_MAP_BORDER_SIZE / this._scale // borders
 
-    return this._getHexCoords({
+    return this.getHexCoords({
       x: shiftedX,
       y: shiftedY
     })
@@ -207,7 +202,7 @@ export class Map2DView {
     }
 
     this._scale = newScale
-    const {left, right, top, bottom} = this._getMapEdgesInPixels(
+    const {left, right, top, bottom} = this.getMapEdgesInPixels(
       widthInTiles,
       heightInTiles
     )
@@ -228,7 +223,7 @@ export class Map2DView {
     widthInTiles: number,
     heightInTiles: number
   ) {
-    const {left, right, top, bottom} = this._getMapEdgesInPixels(
+    const {left, right, top, bottom} = this.getMapEdgesInPixels(
       widthInTiles,
       heightInTiles
     )
@@ -293,7 +288,7 @@ export class Map2DView {
 
   /** Private methods */
 
-  private _initCtx(
+  private initCtx(
     canvasObject: CanvasObject,
     canvas: RefObject<HTMLCanvasElement>,
     onError: () => void
@@ -310,7 +305,7 @@ export class Map2DView {
     canvasObject.ref.current!.height = this._canvasHeight
   }
 
-  private _drawHexTile({
+  private drawHexTile({
     hexType,
     coords
   }: Pick<PreparedForRenderHex, 'hexType' | 'coords'>) {
@@ -330,16 +325,16 @@ export class Map2DView {
     this._gridCanvas.ctx.restore()
   }
 
-  private _drawLandscape({
+  private drawLandscape({
     landscapeType,
+    coords,
     rotationDeg,
-    isReflected,
-    coords
+    isReflected
   }: Omit<PreparedForRenderHex, 'hexType'>) {
     const canvasTemplate =
-      this._landscapeTemplatesScheme?.[this.mapMode]?.[landscapeType][
-        this.mapMode === 'detailed' ? rotationDeg : 0
-      ]
+      this.mapMode === 'detailed'
+        ? this._landscapeTemplatesScheme?.detailed?.[landscapeType][rotationDeg]
+        : this._landscapeTemplatesScheme?.simplified?.[landscapeType]
 
     if (!this._landscapeCanvas.ctx || !canvasTemplate) {
       return
@@ -366,7 +361,7 @@ export class Map2DView {
     this._landscapeCanvas.ctx.restore()
   }
 
-  private _getHexCoords(coords: AxialCoords): ShortCubeCoords {
+  private getHexCoords(coords: AxialCoords): ShortCubeCoords {
     const {x, y} = coords
     const fractionalQ = ((Math.sqrt(3) / 3) * x - (1 / 3) * y) / this._hexRadius
     const fractionalR = ((2 / 3) * y) / this._hexRadius
@@ -389,7 +384,7 @@ export class Map2DView {
     return {q, r}
   }
 
-  private _getMapEdgesInPixels(
+  private getMapEdgesInPixels(
     widthInTiles: number,
     heightInTiles: number
   ): MapEdges {

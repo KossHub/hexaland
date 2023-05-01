@@ -1,62 +1,64 @@
-import {
-  CanvasTemplatesScheme,
-  MapMode
-} from '../../interfaces/hex.interfaces'
-import {getCanvasTemplate} from '../../utils/canvasTemplate.utils'
+import {HexTilesTemplatesScheme} from '../../interfaces/hex.interfaces'
 import {HEX_TILE_TYPES} from './constants'
-import {DrawnTemplates} from '../DrawnTemplates'
+import {getCanvasTemplate} from '../../utils/canvasTemplate.utils'
 import {drawHexShape} from '../../utils/drawHexShape'
 
-export class HexTileTemplates extends DrawnTemplates {
-  protected _scheme: CanvasTemplatesScheme<keyof typeof HEX_TILE_TYPES> = {
+export class HexTileTemplates {
+  private _scheme: HexTilesTemplatesScheme = {
     detailed: {},
     simplified: {}
   }
 
   constructor(radius: number) {
-    super()
     this.fillTemplates(radius)
   }
 
-  protected fillTemplates(radius: number) {
+  private fillDetailedTemplate(
+    radius: number,
+    hexType: keyof typeof HEX_TILE_TYPES
+  ) {
+    const {canvas, ctx} = getCanvasTemplate(radius)
+    const {detailedLineColor, detailedLineWidth} = HEX_TILE_TYPES[hexType]
+
+    drawHexShape(ctx, radius)
+
+    ctx.strokeStyle = detailedLineColor
+    ctx.lineWidth = detailedLineWidth
+
+    ctx.stroke()
+
+    this._scheme.detailed[hexType] = canvas
+  }
+
+  private fillSimplifiedTemplate(
+    radius: number,
+    hexType: keyof typeof HEX_TILE_TYPES
+  ) {
+    const color = HEX_TILE_TYPES[hexType]?.simplifiedFillColor
+
+    if (!color) {
+      return
+    }
+
+    const {canvas, ctx} = getCanvasTemplate(radius)
+
+    drawHexShape(ctx, radius)
+
+    ctx.fillStyle = color
+
+    ctx.fill()
+
+    this._scheme.simplified[hexType] = canvas
+  }
+
+  private fillTemplates(radius: number) {
     Object.keys(HEX_TILE_TYPES).forEach((hexType) => {
-      Object.keys(this._scheme).forEach((schemeKey) => {
-        const {canvas, ctx} = getCanvasTemplate(radius)
-
-        const color = HEX_TILE_TYPES[hexType][schemeKey as MapMode]
-
-        if (color) {
-          drawHexShape(ctx, radius)
-
-          switch (hexType) {
-            case 'selected': {
-              if (schemeKey === 'detailed') {
-                ctx.strokeStyle = color
-                ctx.lineWidth = 3
-                ctx.stroke()
-              } else if (schemeKey === 'simplified') {
-                ctx.fillStyle = color
-                ctx.fill()
-              }
-              break
-            }
-            case 'highlighted': {
-              ctx.strokeStyle = color
-              ctx.lineWidth = 2
-              ctx.stroke()
-              break
-            }
-            default: {
-              ctx.strokeStyle = color
-              ctx.lineWidth = 1
-              ctx.stroke()
-              break
-            }
-          }
-
-          this._scheme[schemeKey as MapMode][hexType] = canvas
-        }
-      })
+      this.fillDetailedTemplate(radius, hexType)
+      this.fillSimplifiedTemplate(radius, hexType)
     })
+  }
+
+  public get scheme() {
+    return this._scheme
   }
 }

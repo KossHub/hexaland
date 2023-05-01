@@ -5,12 +5,12 @@ import {
   CubeCoords,
   ShortCubeCoords
 } from '../../contexts/canvas/interfaces'
-import {LANDSCAPE_TYPES} from '../classes/LandscapeTemplates/constants'
+import {LANDSCAPES} from '../classes/LandscapeTemplates/constants'
 import {HEX_TILE_TYPES} from '../classes/HexTileTemplates/constants'
 
 export interface RectMapSchemeRow {
   [key: CubeCoords['q']]: {
-    landscapeType: keyof typeof LANDSCAPE_TYPES
+    landscapeType: keyof typeof LANDSCAPES
     rotationDeg: number
     isReflected: boolean
   }
@@ -36,7 +36,7 @@ export interface MapEventListener {
 
 export interface PreparedForRenderHex {
   hexType: keyof typeof HEX_TILE_TYPES
-  landscapeType: keyof typeof LANDSCAPE_TYPES
+  landscapeType: keyof typeof LANDSCAPES
   rotationDeg: number
   isReflected: boolean
   coords: AxialCoords
@@ -46,3 +46,5 @@ export interface CanvasObject {
   ref: MutableRefObject<null | HTMLCanvasElement>
   ctx: null | CanvasRenderingContext2D
 }
+
+export type MapMode = 'simplified' | 'detailed'

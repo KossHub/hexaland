@@ -35,11 +35,11 @@ export class Hex {
       x:
         originCoords.x + // origin
         (Math.sqrt(3) * radius) / 2 + // projecting hex part
-        GAME_MAP_BORDER_SIZE / scale, // border
+        GAME_MAP_BORDER_SIZE / scale, // borders
       y:
         originCoords.y + // origin
         radius + // projecting hex part
-        GAME_MAP_BORDER_SIZE / scale // border
+        GAME_MAP_BORDER_SIZE / scale // borders
     }
   }
 

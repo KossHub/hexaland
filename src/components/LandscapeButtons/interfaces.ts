@@ -1,9 +1,9 @@
 import {PropsWithChildren} from 'react'
 
-import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
+import {LANDSCAPES} from '../../core/classes/LandscapeTemplates/constants'
 
 export interface LandscapeButtonsProps extends PropsWithChildren {
-  onSelect: (type: keyof typeof LANDSCAPE_TYPES) => void
+  onSelect: (type: keyof typeof LANDSCAPES) => void
   active: null | string
 }
 

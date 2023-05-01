@@ -1,6 +1,6 @@
 import {isEqual} from 'lodash'
 
-import {RectMapScheme} from '../../interfaces/map.interfaces'
+import {RectMapScheme, MapMode} from '../../interfaces/map.interfaces'
 import {
   AxialCoords,
   CanvasContextState,
@@ -8,24 +8,20 @@ import {
 } from '../../../contexts/canvas/interfaces'
 import {Hex} from '../Hex'
 import {
-  CanvasLandscapeTemplatesScheme,
-  CanvasTemplatesScheme,
-  MapMode
+  LandscapeTemplatesScheme,
+  HexTilesTemplatesScheme
 } from '../../interfaces/hex.interfaces'
 import {HexTileTemplates} from '../HexTileTemplates'
 import {LandscapeTemplates} from '../LandscapeTemplates'
 import {CUBE_DIRECTION_VECTORS, Vector} from './constants'
-import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
+import {HEX_TILE_TYPE, HEX_TILE_TYPES} from '../HexTileTemplates/constants'
 import {SCALE} from '../../../constants'
 import {getHexTileHeight} from '../../utils/canvasCalculates.utils'
 
 // TODO: Use only RectMap without inheritance from GameMap
 export class GameMap {
-  protected _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
-    keyof typeof HEX_TILE_TYPES
-  > = null
-  protected _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
-    null
+  protected _hexTileTemplatesScheme: null | HexTilesTemplatesScheme = null
+  protected _landscapeTemplatesScheme: null | LandscapeTemplatesScheme = null
 
   // TODO: make public
   protected _mapScheme: RectMapScheme = {}
@@ -48,8 +44,8 @@ export class GameMap {
 
   // cube_ring
   public getRingHexTiles(
-      center: ShortCubeCoords,
-      radius: number
+    center: ShortCubeCoords,
+    radius: number
   ): ShortCubeCoords[] {
     //steps away from the center, then follow the rotated vectors in a path around the ring
     if (radius === 0) {
@@ -59,9 +55,9 @@ export class GameMap {
     const result: ShortCubeCoords[] = []
 
     let anchorHex = this.getShiftedHexTile(
-        center,
-        CUBE_DIRECTION_VECTORS.BOTTOM_LEFT,
-        radius
+      center,
+      CUBE_DIRECTION_VECTORS.BOTTOM_LEFT,
+      radius
     )
 
     Object.values(CUBE_DIRECTION_VECTORS).forEach((vector) => {
@@ -76,8 +72,8 @@ export class GameMap {
 
   // cube_spiral
   public getSpiralHexTiles(
-      center: ShortCubeCoords,
-      maxRadius: number
+    center: ShortCubeCoords,
+    maxRadius: number
   ): ShortCubeCoords[] {
     const result = [center]
 
@@ -94,7 +90,7 @@ export class GameMap {
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
     landscapeType: string,
-    mapType: MapMode = 'detailed',
+    mapMode: MapMode = 'detailed',
     rotationDeg: number = 0,
     isReflected: boolean = false
   ) {
@@ -103,9 +99,9 @@ export class GameMap {
     }
 
     const canvasTemplate =
-      this._landscapeTemplatesScheme?.[mapType]?.[landscapeType][
-        mapType === 'detailed' ? rotationDeg : 0
-      ]
+      mapMode === 'detailed'
+        ? this._landscapeTemplatesScheme?.detailed?.[landscapeType][rotationDeg]
+        : this._landscapeTemplatesScheme?.simplified?.[landscapeType]
 
     if (!canvasTemplate) {
       return
@@ -135,14 +131,14 @@ export class GameMap {
   private drawHexTile(
     ctx: null | CanvasRenderingContext2D,
     coords: AxialCoords,
-    mapType: MapMode = 'detailed',
-    hexType: keyof typeof HEX_TILE_TYPES = 'default'
+    mapMode: MapMode = 'detailed',
+    hexType: keyof typeof HEX_TILE_TYPES = HEX_TILE_TYPE.DEFAULT
   ) {
     if (!ctx) {
       return
     }
 
-    const canvasTemplate = this._hexTileTemplatesScheme?.[mapType]?.[hexType]
+    const canvasTemplate = this._hexTileTemplatesScheme?.[mapMode]?.[hexType]
 
     if (!canvasTemplate) {
       return
@@ -183,6 +179,7 @@ export class GameMap {
     throw new Error('heightInPixels is not implemented')
   }
 
+  // FIXME: [DEPRECATED] ?
   public drawHexTiles(
     canvas: CanvasContextState,
     centerHexCoords: ShortCubeCoords,
@@ -221,11 +218,12 @@ export class GameMap {
         const isHighlighted = isEqual(coords, hoveredHex)
         const isSelected = isEqual(coords, selectedHex)
 
-        let hexType: keyof typeof HEX_TILE_TYPES = 'default'
+        let hexType: keyof typeof HEX_TILE_TYPES = HEX_TILE_TYPE.DEFAULT
+
         if (isSelected) {
-          hexType = 'selected'
+          hexType = HEX_TILE_TYPE.SELECTED
         } else if (isHighlighted) {
-          hexType = 'highlighted'
+          hexType = HEX_TILE_TYPE.HIGHLIGHTED
         }
 
         const {landscapeType, rotationDeg, isReflected} =
@@ -240,38 +238,47 @@ export class GameMap {
         }
       })
       .sort((a, b) => {
-        if (a.hexType === 'selected' && b.hexType !== 'selected') {
+        if (
+          a.hexType === HEX_TILE_TYPE.SELECTED &&
+          b.hexType !== HEX_TILE_TYPE.SELECTED
+        ) {
           return 1
         }
-        if (a.hexType !== 'selected' && b.hexType === 'selected') {
+        if (
+          a.hexType !== HEX_TILE_TYPE.SELECTED &&
+          b.hexType === HEX_TILE_TYPE.SELECTED
+        ) {
           return -1
         }
-        if (a.hexType === 'highlighted' && b.hexType !== 'highlighted') {
+        if (
+          a.hexType === HEX_TILE_TYPE.HIGHLIGHTED &&
+          b.hexType !== HEX_TILE_TYPE.HIGHLIGHTED
+        ) {
           return 1
         }
-        if (a.hexType !== 'highlighted' && b.hexType === 'highlighted') {
+        if (
+          a.hexType !== HEX_TILE_TYPE.HIGHLIGHTED &&
+          b.hexType === HEX_TILE_TYPE.HIGHLIGHTED
+        ) {
           return -1
         }
         return 0
       })
       .forEach(({coords, hexType, landscapeType, rotationDeg, isReflected}) => {
-        const mapType =
+        const mapMode =
           canvas.scale < SCALE.SIMPLIFIED_MAP ? 'simplified' : 'detailed'
 
-        this.drawHexTile(canvas.contexts.grid, coords, mapType, hexType)
+        this.drawHexTile(canvas.contexts.grid, coords, mapMode, hexType)
         this.drawLandscape(
           canvas.contexts.landscape,
           coords,
           landscapeType,
-          mapType,
+          mapMode,
           rotationDeg,
           isReflected
         )
       })
   }
-
-
-
 
   /** Public getters */
 

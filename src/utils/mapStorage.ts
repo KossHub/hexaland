@@ -3,7 +3,7 @@ import {
   RectMapSchemeRow
 } from '../core/interfaces/map.interfaces'
 import {TodoAny} from '../interfaces'
-import {LANDSCAPE_TYPES} from '../core/classes/LandscapeTemplates/constants'
+import {LANDSCAPES} from '../core/classes/LandscapeTemplates/constants'
 
 export const simplifyMap = (gameMap: RectMapScheme) =>
   Object.keys(gameMap).reduce((acc, r) => {
@@ -12,7 +12,7 @@ export const simplifyMap = (gameMap: RectMapScheme) =>
 
     Object.keys(row).forEach((q) => {
       const {landscapeType, rotationDeg, isReflected} = row[Number(q)]
-      const idx = Object.keys(LANDSCAPE_TYPES).findIndex(
+      const idx = Object.keys(LANDSCAPES).findIndex(
         (type) => type === landscapeType
       )
 
@@ -32,7 +32,7 @@ export const parseMap = (gameMap: TodoAny) =>
     Object.keys(row).forEach((q) => {
       const [idx, deg] = row[q].split(' ')
 
-      const landscapeType = Object.keys(LANDSCAPE_TYPES)[idx]
+      const landscapeType = Object.keys(LANDSCAPES)[idx]
       const rotationDeg = Math.abs(deg) * 60
       const isReflected = deg[0] === '-'
 

@@ -1,10 +1,11 @@
+import {random} from 'lodash'
+
 import {
   MapEdges,
   RectMapScheme,
   RectMapSchemeRow
 } from '../interfaces/map.interfaces'
-import {LANDSCAPE_TYPES, ROTATION_DEG} from "../classes/LandscapeTemplates/constants";
-import {random} from "lodash";
+import {LANDSCAPES, ROTATION_DEG} from '../classes/LandscapeTemplates/constants'
 
 export const getCanvasTemplate = (
   radius: number
@@ -24,11 +25,12 @@ export const getCanvasTemplate = (
   }
 }
 
-const getRandomGrass = () => Object.keys(LANDSCAPE_TYPES)[random(3)]
+const getRandomGrass = () => Object.keys(LANDSCAPES)[random(3)]
 
 export const getRandomReflectedState = () => Boolean(random(1))
 
-export const getRandomRotation = () => ROTATION_DEG[random(ROTATION_DEG.length - 1)]
+export const getRandomRotation = () =>
+  ROTATION_DEG[random(ROTATION_DEG.length - 1)]
 
 export const getDefaultMapScheme = (edges: MapEdges) => {
   const {top, right, bottom, left} = edges

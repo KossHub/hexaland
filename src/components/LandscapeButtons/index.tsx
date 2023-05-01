@@ -2,7 +2,7 @@ import React from 'react'
 
 import Tooltip from '../Tooltip'
 import {LandscapeButtonsProps} from './interfaces'
-import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
+import {LANDSCAPES} from '../../core/classes/LandscapeTemplates/constants'
 import * as UI from './styles'
 
 const LandscapeButtons: React.FC<LandscapeButtonsProps> = (props) => {
@@ -10,11 +10,11 @@ const LandscapeButtons: React.FC<LandscapeButtonsProps> = (props) => {
 
   return (
     <>
-      {Object.keys(LANDSCAPE_TYPES).map((type) => (
-        <Tooltip key={type} title={type}>
-          <UI.ImageButton disableRipple onClick={() => onSelect(type)}>
-            <UI.ImageSrc url={LANDSCAPE_TYPES[type].detailed as string} />
-            {active === type && <UI.Icon />}
+      {Object.keys(LANDSCAPES).map((landscapeType) => (
+        <Tooltip key={landscapeType} title={landscapeType}>
+          <UI.ImageButton disableRipple onClick={() => onSelect(landscapeType)}>
+            <UI.ImageSrc url={LANDSCAPES[landscapeType].imageName} />
+            {active === landscapeType && <UI.Icon />}
           </UI.ImageButton>
         </Tooltip>
       ))}

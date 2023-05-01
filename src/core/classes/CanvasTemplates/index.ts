@@ -1,24 +1,16 @@
 import {
-  CanvasLandscapeTemplatesScheme,
-  CanvasTemplatesScheme
+  LandscapeTemplatesScheme,
+  HexTilesTemplatesScheme
 } from '../../interfaces/hex.interfaces'
-import {HEX_TILE_TYPES} from '../HexTileTemplates/constants'
-import {HexTileTemplates} from '../HexTileTemplates'
-import {LandscapeTemplates} from '../LandscapeTemplates'
 
-// TODO: Implement
+// TODO: Implement (?)
 export class CanvasTemplates {
-  private _hexTileTemplatesScheme: null | CanvasTemplatesScheme<
-    keyof typeof HEX_TILE_TYPES
-  > = null
-  private _landscapeTemplatesScheme: null | CanvasLandscapeTemplatesScheme =
-    null
+  private _hexTileTemplatesScheme: null | HexTilesTemplatesScheme = null
+  private _landscapeTemplatesScheme: null | LandscapeTemplatesScheme = null
 
-  constructor(radius: number) {
-  }
+  constructor(radius: number) {}
 
   /** Private methods */
-
 
   /** Public getters */
 

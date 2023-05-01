@@ -22,7 +22,7 @@ import TextField from '../../components/TextField'
 import Tooltip from '../../components/Tooltip'
 import LandscapeButtons from '../../components/LandscapeButtons'
 import {SIZE_LIMIT, SNACKBAR_POSITION} from './constants'
-import {LANDSCAPE_TYPES} from '../../core/classes/LandscapeTemplates/constants'
+import {LANDSCAPES} from '../../core/classes/LandscapeTemplates/constants'
 import {RectMap} from '../../core/classes/GameMap/RectMap'
 import {
   MapEventListener,
@@ -58,7 +58,7 @@ const MapEditorPage = () => {
     null | RectMapSchemeRow[keyof RectMapSchemeRow]
   >(null)
   const [selectedLandscape, setSelectedLandscape] = useState<
-    null | keyof typeof LANDSCAPE_TYPES
+    null | keyof typeof LANDSCAPES
   >(null)
 
   const [, triggerRender] = useState({})
@@ -141,7 +141,7 @@ const MapEditorPage = () => {
     triggerRender({})
   }, [selectedHexInScheme])
 
-  const handleSelectLandscapeType = (type: keyof typeof LANDSCAPE_TYPES) => {
+  const handleSelectLandscapeType = (type: keyof typeof LANDSCAPES) => {
     const newLandscape = selectedLandscape === type ? null : type
 
     if (selectedHexInScheme && newLandscape) {
@@ -418,9 +418,10 @@ const MapEditorPage = () => {
             </IconButton>
           </Tooltip>
         </Box>
-        <Box sx={{position: 'relative'}}>
+        <Box mb={2} sx={{position: 'relative'}}>
           <Typography sx={{fontWeight: selectedLandscape ? 600 : 400}}>
-            {selectedLandscape || 'ландшафт не выбран'}
+            {LANDSCAPES[selectedLandscape as keyof typeof LANDSCAPES]?.name ||
+              'ландшафт не выбран'}
           </Typography>
 
           {selectedLandscape && (
@@ -433,8 +434,6 @@ const MapEditorPage = () => {
             </IconButton>
           )}
         </Box>
-
-        <Divider sx={{mb: 2}} />
 
         <UI.LandscapeButtonsWrapper>
           <LandscapeButtons
