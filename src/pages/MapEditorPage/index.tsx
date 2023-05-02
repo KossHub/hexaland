@@ -311,6 +311,10 @@ const MapEditorPage = () => {
   useEffect(() => {
     const handleKeyup = (event: KeyboardEvent) => {
       switch (event.key) {
+        case 'q': {
+          handleResetTransform()
+          break
+        }
         case 'w': {
           handleReflect()
           break
@@ -376,7 +380,7 @@ const MapEditorPage = () => {
         </Box>
 
         <Box sx={{display: 'flex', justifyContent: 'space-evenly', mb: 2}}>
-          <Tooltip title="Восстановить">
+          <Tooltip title="Восстановить (Q)">
             <IconButton
               onClick={handleResetTransform}
               disabled={isSelectedHexDisabled}

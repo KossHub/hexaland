@@ -15,7 +15,7 @@ export const landscapeFactory: LandscapeFactory = {
   createLandsCore: (imageName: string) => ({
     imageName,
     name: 'Сердце земель',
-    color: '#051c82',
+    color: '#5f6c38',
     travelSpeed: TRAVEL_SPEEDS.VERY_FAST,
     isViewObstacle: false,
     description: ''
@@ -28,9 +28,25 @@ export const landscapeFactory: LandscapeFactory = {
     isViewObstacle: false,
     description: 'Можно собирать различные травы'
   }),
+  createGround: (imageName: string) => ({
+    imageName,
+    name: 'Земля',
+    color: '#5f6c38',
+    travelSpeed: TRAVEL_SPEEDS.SLOW,
+    isViewObstacle: false,
+    description: 'Здесь можно строить'
+  }),
   createGardenBed: (imageName: string) => ({
     imageName,
     name: 'Засеяннное поле',
+    color: '#5f6c38',
+    travelSpeed: TRAVEL_SPEEDS.VERY_SLOW,
+    isViewObstacle: false,
+    description: ''
+  }),
+  createWheat: (imageName: string) => ({
+    imageName,
+    name: 'Пшеница',
     color: '#5f6c38',
     travelSpeed: TRAVEL_SPEEDS.VERY_SLOW,
     isViewObstacle: false,
@@ -196,7 +212,9 @@ const MEADOW_1 = landscapeFactory.createMeadow('meadow1.png')
 const MEADOW_2 = landscapeFactory.createMeadow('meadow2.png')
 const MEADOW_3 = landscapeFactory.createMeadow('meadow3.png')
 const MEADOW_4 = landscapeFactory.createMeadow('meadow4.png')
+const GROUND = landscapeFactory.createGround('ground1.png')
 const GARDEN_BED = landscapeFactory.createGardenBed('gardenBed1.png')
+const WHEAT = landscapeFactory.createWheat('wheat1.png')
 const GROVE = landscapeFactory.createGrove('grove1.png')
 const FOREST_1 = landscapeFactory.createForest('forest1.png')
 const FOREST_2 = landscapeFactory.createForest('forest2.png')
@@ -275,7 +293,9 @@ export const LANDSCAPES: Landscapes = {
   MEADOW_2,
   MEADOW_3,
   MEADOW_4,
+  GROUND,
   GARDEN_BED,
+  WHEAT,
   GROVE,
   FOREST_1,
   FOREST_2,
